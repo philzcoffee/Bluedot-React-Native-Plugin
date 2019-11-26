@@ -1,6 +1,5 @@
-
 import { NativeModules } from 'react-native';
 
-const { RNPointSDK } = NativeModules;
+const { BluedotPointSdk } = NativeModules;
 
-export default RNPointSDK;
+export default BluedotPointSdk;

@@ -1,20 +1,33 @@
-
 {
-  "name": "bluedot-point-sdk-plugin",
+  "name": "react-native-bluedot-point-sdk",
+  "title": "React Native Bluedot Point Sdk",
   "version": "1.0.0",
-  "description": "Bluedot Point SDK; integrates the Android and iOS Point SDK libraries through a React Native plugin",
+  "description": "TODO",
   "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/github_account/react-native-bluedot-point-sdk.git",
+    "baseUrl": "https://github.com/github_account/react-native-bluedot-point-sdk"
+  },
   "keywords": [
-    "bluedot-point-sdk-plugin",
-    "bluedot",
-    "react native bluedot",
-    "pointsdk",
-    "geolocation",
-    "location"
+    "react-native"
   ],
-  "author": "Bluedot Innovation",
-  "license": "ISC",
+  "author": {
+    "name": "Your Name",
+    "email": "yourname@email.com"
+  },
+  "license": "MIT",
+  "licenseFilename": "LICENSE",
+  "readmeFilename": "README.md",
   "peerDependencies": {
-    "react-native": "^0.41.2"
+    "react": "^16.8.1",
+    "react-native": ">=0.59.0-rc.0 <1.0.x"
+  },
+  "devDependencies": {
+    "react": "^16.8.3",
+    "react-native": "^0.59.10"
   }
 }
