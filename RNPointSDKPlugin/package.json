@@ -1,0 +1,20 @@
+
+{
+  "name": "bluedot-point-sdk-plugin",
+  "version": "1.0.0",
+  "description": "Bluedot Point SDK; integrates the Android and iOS Point SDK libraries through a React Native plugin",
+  "main": "index.js",
+  "keywords": [
+    "bluedot-point-sdk-plugin",
+    "bluedot",
+    "react native bluedot",
+    "pointsdk",
+    "geolocation",
+    "location"
+  ],
+  "author": "Bluedot Innovation",
+  "license": "ISC",
+  "peerDependencies": {
+    "react-native": "^0.41.2"
+  }
+}
