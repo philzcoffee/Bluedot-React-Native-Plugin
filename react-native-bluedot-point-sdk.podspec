@@ -7,20 +7,30 @@ Pod::Spec.new do |s|
   s.version      = package["version"]
   s.summary      = package["description"]
   s.description  = <<-DESC
-                  react-native-bluedot-point-sdk
+                    react-native-bluedot-point-sdk
                    DESC
-  s.homepage     = "https://github.com/github_account/react-native-bluedot-point-sdk"
-  s.license      = "MIT"
-  # s.license    = { :type => "MIT", :file => "FILE_LICENSE" }
-  s.authors      = { "Your Name" => "yourname@email.com" }
-  s.platforms    = { :ios => "9.0" }
-  s.source       = { :git => "https://github.com/github_account/react-native-bluedot-point-sdk.git", :tag => "#{s.version}" }
+  s.homepage     = "https://github.com/Bluedot-Innovation/PointSDK-iOS"
+  s.license = {
+    :type => 'Copyright',
+    :text => <<-LICENSE
+    Point SDK
+    Created by Bluedot Innovation in 2019.
+    Copyright © 2019 Bluedot Innovation. All rights reserved.
+    By downloading or using the Bluedot Point SDK for iOS, You agree to the Bluedot Terms and Conditions
+    https://bluedot.io/agreements/#terms and Privacy Policy https://bluedot.io/agreements/#privacy
+    and Billing Policy https://bluedot.io/agreements/#billing
+    and acknowledge that such terms govern Your use of and access to the iOS SDK.
+    LICENSE
+  }
+  s.author        = { "Bluedot Innovation" => "https://www.bluedot.io" }
+  s.platform      = :ios, '10.0'
+  s.swift_version = '5.0'
+  s.source       = { :git => "file:///Users/duncanlau/Projects/Cloud/react-native-alice-helper" }
 
-  s.source_files = "ios/**/*.{h,m,swift}"
-  s.requires_arc = true
+  s.source_files  = "ios/**/*.{h,m,swift}"
+  s.requires_arc  = true
 
+  s.dependency "BluedotPointSDK"
   s.dependency "React"
-  # ...
-  # s.dependency "..."
 end
 
