@@ -1,7 +1,7 @@
-#import "BluedotPointSdk.h"
+#import "BluedotPointSDK.h"
 @import BDPointSDK;
 
-@implementation BluedotPointSdk {
+@implementation BluedotPointSDK {
     /*
      *  Callback identifiers for the Bluedot Location delegates.
      */
