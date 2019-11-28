@@ -3,11 +3,11 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "react-native-bluedot-point-sdk"
+  s.name         = "react-native-plugin"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.description  = <<-DESC
-                    react-native-bluedot-point-sdk
+                    react-native-plugin
                    DESC
   s.homepage     = "https://github.com/Bluedot-Innovation/PointSDK-iOS"
   s.license = {
@@ -25,7 +25,7 @@ Pod::Spec.new do |s|
   s.author        = { "Bluedot Innovation" => "https://www.bluedot.io" }
   s.platform      = :ios, '10.0'
   s.swift_version = '5.0'
-  s.source       = { :git => "file:///Users/duncanlau/Projects/Cloud/react-native-alice-helper" }
+  s.source       = { :git => "file:///Users/duncanlau/Projects/Cloud/react-native-plugin" }
 
   s.source_files  = "ios/**/*.{h,m,swift}"
   s.requires_arc  = true

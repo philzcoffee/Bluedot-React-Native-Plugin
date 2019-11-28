@@ -1,6 +1,6 @@
 {
-  "name": "react-native-bluedot-point-sdk",
-  "title": "React Native Bluedot Point Sdk",
+  "name": "react-native-plugin",
+  "title": "React Native Bluedot Point SDK",
   "version": "1.0.0",
   "description": "TODO",
   "main": "index.js",
@@ -9,8 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-bluedot-point-sdk.git",
-    "baseUrl": "https://github.com/github_account/react-native-bluedot-point-sdk"
+    "url": "git+https://github.com/github_account/react-native-plugin.git",
+    "baseUrl": "https://github.com/github_account/react-native-plugin-sdk"
   },
   "keywords": [
     "react-native"
@@ -29,8 +29,5 @@
   "devDependencies": {
     "react": "^16.8.3",
     "react-native": "^0.59.10"
-  },
-  "dependencies": {
-    "prettier": "^1.19.1"
   }
 }

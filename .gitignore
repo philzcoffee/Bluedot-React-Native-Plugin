@@ -41,7 +41,7 @@ buck-out/
 \.buckd/
 *.keystore
 
+# XCode
 ios/Carthage/Checkouts
 ios/Carthage/Build
-example/
 **/*.xcworkspace
