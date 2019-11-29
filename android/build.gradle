@@ -37,6 +37,14 @@ buildscript {
         }
     }
 }
+allprojects {
+    repositories {
+        mavenLocal()
+        jcenter()
+        // ADD IT HERE
+        maven { url "https://jitpack.io" }
+    }
+}
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
@@ -73,6 +81,7 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
+    implementation 'com.github.Bluedot-Innovation:PointSDK-Android:1.13.3'
 }
 
 def configureReactNativePom(def pom) {
