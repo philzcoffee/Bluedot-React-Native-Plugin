@@ -8,6 +8,8 @@
     RCTResponseSenderBlock _callbackIdZoneInfo;
     RCTResponseSenderBlock _callbackAuthenticationSuccessful;
     RCTResponseSenderBlock _callbackAuthenticationFailed;
+    RCTResponseSenderBlock _callbackLogOutSuccessful;
+    RCTResponseSenderBlock _callbackLogOutFailed;
     BOOL _authenticated;
 }
 
@@ -66,6 +68,14 @@ RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
     [ BDLocationManager.instance setCustomEventMetaData: eventMetaData ];
 }
 
+RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccessfulCallback
+    logOutFailed: (RCTResponseSenderBlock)logOutFailedCallback)
+{
+    _callbackLogOutSuccessful = logOutSuccessfulCallback;
+    _callbackLogOutFailed = logOutFailedCallback;
+    [ BDLocationManager.instance logOut ];
+}
+
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
     NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
     
@@ -84,25 +94,35 @@ RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
 
 - (void)authenticationFailedWithError:(NSError *)error {
     NSLog( @"authenticationFailedWithError");
+    _callbackAuthenticationFailed(@[error.localizedDescription, [NSNull null] ]);
+
+    //  Reset the authentication callback
+    _callbackAuthenticationFailed = nil;
+    _callbackAuthenticationSuccessful = nil;
+    
+    _authenticated = NO;
 }
 
 - (void)authenticationWasDeniedWithReason:(NSString *)reason {
     NSLog( @"authenticationWasDeniedWithReason");
+
+    _callbackAuthenticationFailed(@[reason, [NSNull null] ]);
+
+    //  Reset the authentication callback
+    _callbackAuthenticationFailed = nil;
+    _callbackAuthenticationSuccessful = nil;
+    
+    _authenticated = NO;
 }
 
 - (void)authenticationWasSuccessful {
     NSLog( @"authenticationWasSuccessful");
-    
-    if ( _callbackAuthenticationSuccessful == nil )
-    {
-        NSLog( @"Internal error with authentication process" );
-        return;
-    }
 
     //  Authentication has been successful; on iOS there are no possible warning issues
     _callbackAuthenticationSuccessful(@[@( 0 ), [NSNull null] ]);
 
     //  Reset the authentication callback
+    _callbackAuthenticationFailed = nil;
     _callbackAuthenticationSuccessful = nil;
 
     //  Session is authenticated
@@ -110,11 +130,25 @@ RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
 }
 
 - (void)didEndSession {
-    NSLog( @"didEndSession");
+    NSLog( @"didEndSession" );
+    
+    _callbackLogOutSuccessful(@[]);
+    
+    //  Reset the callback
+    _callbackLogOutSuccessful = nil;
+    _callbackLogOutFailed = nil;
+    
+    _authenticated = NO;
 }
 
 - (void)didEndSessionWithError:(NSError *)error {
     NSLog( @"didEndSessionWithError");
+    
+    _callbackLogOutFailed(@[error.localizedDescription]);
+    
+    //  Reset the callback
+    _callbackLogOutSuccessful = nil;
+    _callbackLogOutFailed = nil;
 }
 
 - (void)willAuthenticateWithApiKey:(NSString *)apiKey {
