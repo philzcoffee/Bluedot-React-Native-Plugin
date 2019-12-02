@@ -10,7 +10,11 @@
     RCTResponseSenderBlock _callbackAuthenticationFailed;
     RCTResponseSenderBlock _callbackLogOutSuccessful;
     RCTResponseSenderBlock _callbackLogOutFailed;
+    RCTResponseSenderBlock _callbackIdCheckedIntoFence;
+    RCTResponseSenderBlock _callbackIdCheckedIntoBeacon;
+    
     BOOL _authenticated;
+    NSDateFormatter  *_dateFormatter;
 }
 
 RCT_EXPORT_MODULE()
@@ -18,6 +22,11 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
     self = [super init];
     if (self) {
+        
+        //  Setup a generic date formatter
+        _dateFormatter = [ NSDateFormatter new ];
+        [ _dateFormatter setDateFormat: @"dd-MMM-yyyy HH:mm" ];
+        
         _authenticated = NO;
     }
     return self;
@@ -25,14 +34,17 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(zoneInfoCallback:(RCTResponseSenderBlock)callback)
 {
-    NSLog( @"Here");
     _callbackIdZoneInfo = callback;
 }
 
-RCT_EXPORT_METHOD(sampleMethod:(NSString *)stringArgument numberParameter:(nonnull NSNumber *)numberArgument callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(checkedIntoFenceCallback:(RCTResponseSenderBlock)callback)
 {
-    // TODO: Implement some actually useful functionality
-    callback(@[[NSString stringWithFormat: @"numberArgument: %@ stringArgument2: %@", numberArgument, stringArgument]]);
+    _callbackIdCheckedIntoFence = callback;
+}
+
+RCT_EXPORT_METHOD(checkedIntoBeaconCallback:(RCTResponseSenderBlock)callback)
+{
+    _callbackIdCheckedIntoBeacon = callback;
 }
 
 RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
@@ -40,9 +52,6 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
     authenticationSuccessful:(RCTResponseSenderBlock)authenticationSuccessfulCallback
     authenticationFailed: (RCTResponseSenderBlock)authenticationFailedCallback)
 {
-    
-    NSLog( @"Here");
-    
     BDAuthorizationLevel bdAuthorizationLevel;
     
     if ([authorizationLevel isEqualToString:@"WhenInUse"])
@@ -76,8 +85,118 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     [ BDLocationManager.instance logOut ];
 }
 
+
+/*
+ *  A fence with a Custom Action has been checked into.
+ *
+ *  Returns the following multipart status:
+ *      Array identifying fence:
+ *          name (String)
+ *          description (String)
+ *      Array of strings identifying zone:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ *      Array of double values identifying location:
+ *          Date of check-in (Integer - UNIX timestamp)
+ *          Latitude of check-in (Double)
+ *          Longitude of check-in (Double)
+ *          Bearing of check-in (Double)
+ *          Speed of check-in (Double)
+ *      Fence is awaiting check-out (BOOL)
+ *      Custom fields setup in the <b>Point Access</b> web-interface.</p>
+ */
+- (void)didCheckIntoFence: (BDFenceInfo *)fence
+                   inZone: (BDZoneInfo *)zone
+               atLocation: (BDLocationInfo *)location
+             willCheckOut: (BOOL)willCheckOut
+           withCustomData: (NSDictionary *)customData
+{
+    NSLog( @"You have checked into fence '%@' in zone '%@', at %@%@",
+          fence.name, zone.name, [ _dateFormatter stringFromDate: location.timestamp ],
+          ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
+
+    //  Ensure that a delegate for fence info has been setup
+    if ( _callbackIdCheckedIntoFence == nil )
+    {
+        NSLog( @"Callback for fence check-ins has not been setup." );
+        return;
+    }
+
+    NSArray  *returnFence = [ self fenceToArray: fence ];
+    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSArray  *returnLocation = [ self locationToArray: location ];
+
+    _callbackIdCheckedIntoFence(@[returnFence, returnZone, returnLocation, @(willCheckOut), customData]);
+}
+
+/*
+ *  A beacon with a Custom Action has been checked into.
+ *
+ *  Returns the following multipart status:
+ *      Array identifying beacon:
+ *          name (String)
+ *          description (String)
+ *          proximity UUID (String)
+ *          major (Integer)
+ *          minor (Integer)
+ *          latitude (Double)
+ *          longitude (Double)
+ *      Array of strings identifying zone:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ *      Array of double values identifying location:
+ *          Date of check-in (Integer - UNIX timestamp)
+ *          Latitude of beacon setting (Double)
+ *          Longitude of beacon setting (Double)
+ *          Bearing of beacon setting (Double)
+ *          Speed of beacon setting (Double)
+ *      Proximity of check-in to beacon (Integer)
+ *          0 = Unknown
+ *          1 = Immediate
+ *          2 = Near
+ *          3 = Far
+ *      Beacon is awaiting check-out (BOOL)
+ *      Custom fields setup in the <b>Point Access</b> web-interface.</p>
+ */
+- (void)didCheckIntoBeacon: (BDBeaconInfo *)beacon
+                    inZone: (BDZoneInfo *)zone
+                atLocation: (BDLocationInfo *)location
+             withProximity: (CLProximity)proximity
+              willCheckOut: (BOOL)willCheckOut
+            withCustomData: (NSDictionary *)customData
+{
+
+    NSLog( @"You have checked into beacon '%@' in zone '%@' with proximity %d at %@%@",
+          beacon.name, zone.name, (int)proximity, [ _dateFormatter stringFromDate: location.timestamp ],
+          ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
+
+    //  Ensure that a delegate for fence info has been setup
+    if ( _callbackIdCheckedIntoBeacon == nil )
+    {
+        NSLog( @"Callback for beacon check-ins has not been setup." );
+        return;
+    }
+
+    NSArray  *returnBeacon = [ self beaconToArray: beacon ];
+    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSArray  *returnLocation = [ self locationToArray: location ];
+    
+    
+    _callbackIdCheckedIntoBeacon(@[returnBeacon, returnZone, returnLocation, @(proximity), @(willCheckOut), customData]);
+
+}
+
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
     NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
+    
+    //  Ensure that a delegate for fence info has been setup
+    if ( _callbackIdZoneInfo == nil )
+    {
+        NSLog( @"Callback for Zone Update info has not been setup." );
+        return;
+    }
     
     NSMutableArray  *returnZones = [ NSMutableArray new ];
 
@@ -85,8 +204,6 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     {
         [ returnZones addObject: [ self zoneToArray: zone ] ];
     }
-    
-    NSLog( @"returnZones updated with %lu zones", (unsigned long)returnZones.count );
     
     _callbackIdZoneInfo(@[[NSNull null], returnZones]);
 
@@ -156,7 +273,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 }
 
 /*
- *  Return an array with extrapolated zone details into Cordova variable types.
+ *  Return an array with extrapolated zone details
  */
 - (NSArray *)zoneToArray: (BDZoneInfo *)zone
 {
@@ -169,5 +286,81 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     return strings;
 }
 
+/*
+ *  Return an array with extrapolated fence details into
+ *      Array identifying fence:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ */
+- (NSArray *)fenceToArray: (BDFenceInfo *)fence
+{
+    NSMutableArray  *strings = [ NSMutableArray new ];
+
+    [ strings addObject: fence.name ];
+    [ strings addObject: ( fence.description == nil ) ? @"" : fence.description ];
+    [ strings addObject: fence.ID ];
+
+    return strings;
+}
+
+/*
+ *  Return an array with extrapolated beacon details into
+ *      Array identifying beacon:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ *          isiBeacon (BOOL)
+ *          proximity UUID (String)
+ *          major (Integer)
+ *          minor (Integer)
+ *          MAC address (String)
+ *          latitude (Double)
+ *          longitude (Double)
+ */
+- (NSArray *)beaconToArray: (BDBeaconInfo *)beacon
+{
+    NSMutableArray  *objs = [ NSMutableArray new ];
+
+    [ objs addObject: beacon.name ];
+    [ objs addObject: ( beacon.description == nil ) ? @"" : beacon.description ];
+    [ objs addObject: beacon.ID ];
+
+    [ objs addObject: @(YES) ];
+    [ objs addObject: beacon.proximityUuid ];
+    [ objs addObject: @( beacon.major ) ];
+    [ objs addObject: @( beacon.minor ) ];
+
+    //  Arrays cannot contain nil, add an NSNULL object
+    [ objs addObject: [ NSNull null ] ];
+
+    [ objs addObject: @( beacon.location.latitude ) ];
+    [ objs addObject: @( beacon.location.longitude ) ];
+
+    return objs;
+}
+
+/*
+ *  Return an array with extrapolated location details into
+ *      Array identifying location:
+ *          Date of check-in (Integer - UNIX timestamp)
+ *          Latitude of check-in (Double)
+ *          Longitude of check-in (Double)
+ *          Bearing of check-in (Double)
+ *          Speed of check-in (Double)
+ */
+- (NSArray *)locationToArray: (BDLocationInfo *)location
+{
+    NSMutableArray  *doubles = [ NSMutableArray new ];
+
+    NSTimeInterval  unixDate = [ location.timestamp timeIntervalSince1970 ];
+    [ doubles addObject: @( unixDate ) ];
+    [ doubles addObject: @( location.latitude ) ];
+    [ doubles addObject: @( location.longitude ) ];
+    [ doubles addObject: @( location.bearing ) ];
+    [ doubles addObject: @( location.speed ) ];
+
+    return doubles;
+}
 
 @end
