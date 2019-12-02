@@ -6,6 +6,9 @@
      *  Callback identifiers for the Bluedot Location delegates.
      */
     RCTResponseSenderBlock _callbackIdZoneInfo;
+    RCTResponseSenderBlock _callbackAuthenticationSuccessful;
+    RCTResponseSenderBlock _callbackAuthenticationFailed;
+    BOOL _authenticated;
 }
 
 RCT_EXPORT_MODULE()
@@ -13,7 +16,7 @@ RCT_EXPORT_MODULE()
 - (instancetype)init {
     self = [super init];
     if (self) {
-        
+        _authenticated = NO;
     }
     return self;
 }
@@ -30,7 +33,10 @@ RCT_EXPORT_METHOD(sampleMethod:(NSString *)stringArgument numberParameter:(nonnu
     callback(@[[NSString stringWithFormat: @"numberArgument: %@ stringArgument2: %@", numberArgument, stringArgument]]);
 }
 
-RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString *)authorizationLevel callback:(RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
+    requestAuthorization:(NSString *)authorizationLevel
+    authenticationSuccessful:(RCTResponseSenderBlock)authenticationSuccessfulCallback
+    authenticationFailed: (RCTResponseSenderBlock)authenticationFailedCallback)
 {
     
     NSLog( @"Here");
@@ -47,10 +53,17 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString
     BDLocationManager.instance.sessionDelegate = self;
     BDLocationManager.instance.locationDelegate = self;
     
+    _callbackAuthenticationSuccessful = authenticationSuccessfulCallback;
+    _callbackAuthenticationFailed = authenticationFailedCallback;
+    
     NSLog( @"%@", BDLocationManager.instance);
 
     [[BDLocationManager instance] authenticateWithApiKey: apiKey requestAuthorization: bdAuthorizationLevel];
-    callback(@[[NSString stringWithFormat: @"apiKey: %@ authorizationLevel: %@", apiKey, authorizationLevel]]);
+}
+
+RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
+{
+    [ BDLocationManager.instance setCustomEventMetaData: eventMetaData ];
 }
 
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
@@ -62,6 +75,8 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString
     {
         [ returnZones addObject: [ self zoneToArray: zone ] ];
     }
+    
+    NSLog( @"returnZones updated with %lu zones", (unsigned long)returnZones.count );
     
     _callbackIdZoneInfo(@[[NSNull null], returnZones]);
 
@@ -77,6 +92,21 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString
 
 - (void)authenticationWasSuccessful {
     NSLog( @"authenticationWasSuccessful");
+    
+    if ( _callbackAuthenticationSuccessful == nil )
+    {
+        NSLog( @"Internal error with authentication process" );
+        return;
+    }
+
+    //  Authentication has been successful; on iOS there are no possible warning issues
+    _callbackAuthenticationSuccessful(@[@( 0 ), [NSNull null] ]);
+
+    //  Reset the authentication callback
+    _callbackAuthenticationSuccessful = nil;
+
+    //  Session is authenticated
+    _authenticated = YES;
 }
 
 - (void)didEndSession {
