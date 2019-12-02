@@ -59,6 +59,20 @@ RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
     [ BDLocationManager.instance setCustomEventMetaData: eventMetaData ];
 }
 
+
+RCT_EXPORT_METHOD(disableZone: (NSString *) zoneId) {
+    [[ BDLocationManager instance] setZone: zoneId disableByApplication: YES ];
+}
+
+RCT_EXPORT_METHOD(enableZone: (NSString *) zoneId) {
+    [[ BDLocationManager instance] setZone: zoneId disableByApplication: NO ];
+}
+
+RCT_EXPORT_METHOD(notifyPushUpdateWithData: (NSDictionary *) data) {
+    [[ BDLocationManager instance] notifyPushUpdateWithData:data];
+}
+
+
 RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccessfulCallback
     logOutFailed: (RCTResponseSenderBlock)logOutFailedCallback)
 {
@@ -69,7 +83,12 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"checkedIntoFence", @"didUpdateZoneInfo", @"checkedIntoBeacon"];
+    return @[
+        @"didUpdateZoneInfo",
+        @"checkedIntoFence",
+        @"checkedOutFromFence",
+        @"checkedIntoBeacon"
+    ];
 }
 
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
@@ -134,6 +153,45 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 }
 
 /*
+ *  A fence with a Custom Action has been checked out of.
+ *
+ *  Returns the following multipart status:
+ *      Array identifying fence:
+ *          name (String)
+ *          description (String)
+ *      Array of strings identifying zone:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ *      Date of check-out (Integer - UNIX timestamp)
+ *      Dwell time in minutes (Unsigned integer)
+ */
+- (void)didCheckOutFromFence: (BDFenceInfo *)fence
+                      inZone: (BDZoneInfo *)zone
+                      onDate: (NSDate *)date
+                withDuration: (NSUInteger)checkedInDuration
+              withCustomData: (NSDictionary *)customData
+{
+
+    NSLog( @"You left fence '%@' in zone '%@', after %u minutes",
+          fence.name, zone.name, (unsigned int)checkedInDuration );
+
+    NSArray  *returnFence = [ self fenceToArray: fence ];
+    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSTimeInterval  unixDate = [ date timeIntervalSince1970 ];
+
+    [self sendEventWithName:@"checkedOutFromFence" body:@{
+        @"fenceInfo" : returnFence,
+        @"zoneInfo" : returnZone,
+        @"date" : @( unixDate ),
+        @"dwellTime" : @( checkedInDuration ),
+        @"customData" : customData != nil ? customData : [NSNull null]
+    }];
+
+}
+
+
+/*
  *  A beacon with a Custom Action has been checked into.
  *
  *  Returns the following multipart status:
@@ -180,7 +238,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSArray  *returnLocation = [ self locationToArray: location ];
     
     [self sendEventWithName:@"checkedIntoBeacon" body:@{
-        @"fenceInfo" : returnBeacon,
+        @"beaconInfo" : returnBeacon,
         @"zoneInfo" : returnZone,
         @"locationInfo" : returnLocation,
         @"proximity" : @(proximity),
@@ -190,6 +248,56 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 }
 
+/*
+ *  A beacon with a Custom Action has been checked out of.
+ *
+ *  Returns the following multipart status:
+ *      Array identifying beacon:
+ *          name (String)
+ *          description (String)
+ *          proximity UUID (String)
+ *          major (Integer)
+ *          minor (Integer)
+ *          latitude (Double)
+ *          longitude (Double)
+ *      Array of strings identifying zone:
+ *          name (String)
+ *          description (String)
+ *          ID (String)
+ *      Proximity of check-in to beacon (Integer)
+ *          0 = Unknown
+ *          1 = Immediate
+ *          2 = Near
+ *          3 = Far
+ *      Date of check-in (Integer - UNIX timestamp)
+ *      Dwell time in minutes (Unsigned integer)
+ */
+- (void)didCheckOutFromBeacon: (BDBeaconInfo *)beacon
+                       inZone: (BDZoneInfo *)zone
+                withProximity: (CLProximity)proximity
+                       onDate: (NSDate *)date
+                 withDuration: (NSUInteger)checkedInDuration
+               withCustomData: (NSDictionary *)customData
+{
+
+    NSLog( @"You have left beacon '%@' in zone '%@' with proximity %d at %@ after %u minutes",
+          beacon.name, zone.name, (int)proximity, [ _dateFormatter stringFromDate: date ],
+          (unsigned int)checkedInDuration );
+
+    NSArray  *returnBeacon = [ self beaconToArray: beacon ];
+    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSTimeInterval  unixDate = [ date timeIntervalSince1970 ];
+
+    [self sendEventWithName:@"checkedOutFromBeacon" body:@{
+        @"fenceInfo" : returnBeacon,
+        @"zoneInfo" : returnZone,
+        @"proximity" : @(proximity),
+        @"date" : @(unixDate),
+        @"dwellTime" : @(checkedInDuration),
+        @"customData" : customData != nil ? customData : [NSNull null]
+    }];
+
+}
 
 - (void)authenticationFailedWithError:(NSError *)error {
     NSLog( @"authenticationFailedWithError");
