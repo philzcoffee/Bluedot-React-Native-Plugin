@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
@@ -77,39 +79,46 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
 
     private Notification createNotification(String channelId,String channelName,String title, String content) {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            //channelId = "Bluedot React Demo";
-            //channelName = "Bluedot Service";
-            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
-            notificationChannel.enableLights(false);
-            notificationChannel.setLightColor(Color.RED);
-            notificationChannel.enableVibration(false);
-            NotificationManager notificationManager = (NotificationManager) reactContext.getSystemService(
-                    Context.NOTIFICATION_SERVICE);
-            notificationManager.createNotificationChannel(notificationChannel);
+        Intent activityIntent = new Intent(this.getCurrentActivity().getIntent());
+        activityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(reactContext, 0,
+                activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        NotificationManager notificationManager =
+                (NotificationManager) reactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (notificationManager.getNotificationChannel(channelId) == null) {
+                NotificationChannel notificationChannel =
+                        new NotificationChannel(channelId, channelName,
+                                NotificationManager.IMPORTANCE_HIGH);
+                notificationChannel.enableLights(false);
+                notificationChannel.setLightColor(Color.RED);
+                notificationChannel.enableVibration(false);
+                notificationManager.createNotificationChannel(notificationChannel);
+            }
             Notification.Builder notification = new Notification.Builder(reactContext, channelId)
                     .setContentTitle(title)
                     .setContentText(content)
-                    .setStyle(new Notification.BigTextStyle().bigText("Bluedot FG"))
+                    .setStyle(new Notification.BigTextStyle().bigText(content))
                     .setOngoing(true)
-                    .setCategory(Notification.CATEGORY_SERVICE);
-
+                    .setCategory(Notification.CATEGORY_SERVICE)
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(R.mipmap.ic_launcher);
             return notification.build();
         } else {
-
             NotificationCompat.Builder notification = new NotificationCompat.Builder(reactContext)
                     .setContentTitle(title)
                     .setContentText(content)
-                    .setStyle(new NotificationCompat.BigTextStyle().bigText("FG Service"))
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(content))
                     .setOngoing(true)
                     .setCategory(Notification.CATEGORY_SERVICE)
-                    .setPriority(PRIORITY_MAX);
-
+                    .setPriority(PRIORITY_MAX)
+                    .setContentIntent(pendingIntent)
+                    .setSmallIcon(R.mipmap.ic_launcher);
             return notification.build();
         }
     }
-
     @Override public void onBlueDotPointServiceStartedSuccess() {
         serviceManager.subscribeForApplicationNotification(this);
     }
