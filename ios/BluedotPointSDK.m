@@ -112,21 +112,20 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
              willCheckOut: (BOOL)willCheckOut
            withCustomData: (NSDictionary *)customData
 {
-//    NSLog( @"HERE" );
-//    NSLog( @"HERE: You have checked into fence '%@' in zone '%@', at %@%@",
-//          fence.name, zone.name, [ _dateFormatter stringFromDate: location.timestamp ],
-//          ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
+    NSLog( @"HERE: You have checked into fence '%@' in zone '%@', at %@%@",
+          fence.name, zone.name, [ _dateFormatter stringFromDate: location.timestamp ],
+          ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
 
-//    //  Ensure that a delegate for fence info has been setup
-//    if ( _callbackIdCheckedIntoFence == nil )
-//    {
-//        NSLog( @"Callback for fence check-ins has not been setup." );
-//        return;
-//    }
-//
-//    NSArray  *returnFence = [ self fenceToArray: fence ];
-//    NSArray  *returnZone = [ self zoneToArray: zone ];
-//    NSArray  *returnLocation = [ self locationToArray: location ];
+    //  Ensure that a delegate for fence info has been setup
+    if ( _callbackIdCheckedIntoFence == nil )
+    {
+        NSLog( @"Callback for fence check-ins has not been setup." );
+        return;
+    }
+
+    NSArray  *returnFence = [ self fenceToArray: fence ];
+    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSArray  *returnLocation = [ self locationToArray: location ];
 //
 //    _callbackIdCheckedIntoFence(@[returnFence, returnZone, returnLocation, @(willCheckOut), customData]);
 }
