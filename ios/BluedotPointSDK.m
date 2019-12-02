@@ -117,7 +117,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     }
     
     [self sendEventWithName:@"ruleUpdate" body:@{
-        @"fenceInfo" : returnZones
+        @"zoneInfos" : returnZones
     }];
 
 }
