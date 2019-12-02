@@ -20,6 +20,9 @@ RCT_EXPORT_MODULE()
     self = [super init];
     if (self) {
         
+        BDLocationManager.instance.sessionDelegate = self;
+        BDLocationManager.instance.locationDelegate = self;
+
         //  Setup a generic date formatter
         _dateFormatter = [ NSDateFormatter new ];
         [ _dateFormatter setDateFormat: @"dd-MMM-yyyy HH:mm" ];
@@ -42,10 +45,7 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
     } else {
         bdAuthorizationLevel = authorizedAlways;
     }
-    
-    BDLocationManager.instance.sessionDelegate = self;
-    BDLocationManager.instance.locationDelegate = self;
-    
+        
     _callbackAuthenticationSuccessful = authenticationSuccessfulCallback;
     _callbackAuthenticationFailed = authenticationFailedCallback;
     
@@ -84,13 +84,28 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 - (NSArray<NSString *> *)supportedEvents {
     return @[
-        @"didUpdateZoneInfo",
+        @"ruleUpdate",
         @"checkedIntoFence",
         @"checkedOutFromFence",
-        @"checkedIntoBeacon"
+        @"checkedIntoBeacon",
+        @"checkedOutFromBeacon",
+        @"startRequiringUserInterventionForBluetooth",
+        @"stopRequiringUserInterventionForBluetooth",
+        @"startRequiringUserInterventionForLocationServices",
+        @"stopRequiringUserInterventionForLocationServices"
     ];
 }
 
+/*
+*  This method is passed the Zone information utilised by the Bluedot SDK.
+*
+*  Returning:
+*      Array of zones
+*          Array of strings identifying zone:
+*              name
+*              description
+*              ID
+*/
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
     NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
         
@@ -101,7 +116,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
         [ returnZones addObject: [ self zoneToArray: zone ] ];
     }
     
-    [self sendEventWithName:@"didUpdateZoneInfo" body:@{
+    [self sendEventWithName:@"ruleUpdate" body:@{
         @"fenceInfo" : returnZones
     }];
 
@@ -301,7 +316,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 - (void)authenticationFailedWithError:(NSError *)error {
     NSLog( @"authenticationFailedWithError");
-    _callbackAuthenticationFailed(@[error.localizedDescription, [NSNull null] ]);
+    _callbackAuthenticationFailed(@[error.localizedDescription]);
 
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
@@ -313,7 +328,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 - (void)authenticationWasDeniedWithReason:(NSString *)reason {
     NSLog( @"authenticationWasDeniedWithReason");
 
-    _callbackAuthenticationFailed(@[reason, [NSNull null] ]);
+    _callbackAuthenticationFailed(@[reason]);
 
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
@@ -326,7 +341,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSLog( @"authenticationWasSuccessful");
 
     //  Authentication has been successful; on iOS there are no possible warning issues
-    _callbackAuthenticationSuccessful(@[@( 0 ), [NSNull null] ]);
+    _callbackAuthenticationSuccessful(@[]);
 
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
@@ -337,7 +352,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 }
 
 - (void)didEndSession {
-    NSLog( @"didEndSession" );
+    NSLog( @"Logged out" );
     
     _callbackLogOutSuccessful(@[]);
     
@@ -359,8 +374,89 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 }
 
 - (void)willAuthenticateWithApiKey:(NSString *)apiKey {
-    NSLog( @"willAuthenticateWithApiKey");
+    NSLog( @"Authenticating Point service with [%@]", apiKey);
 }
+
+/*
+ *  This method is part of the Bluedot location delegate and is called when Bluetooth is required by the SDK but is not
+ *  enabled on the device; requiring user intervention.
+ */
+- (void)didStartRequiringUserInterventionForBluetooth
+{
+    NSLog( @"There are nearby Beacons which cannot be detected because Bluetooth is disabled."
+          "Re-enable Bluetooth to restore full functionality." );
+
+    [self sendEventWithName:@"startRequiringUserInterventionForBluetooth" body:@{}];
+}
+
+/*
+ *  This method is part of the Bluedot location delegate; it is called if user intervention on the device had previously
+ *  been required to enable Bluetooth and either user intervention has enabled Bluetooth or the Bluetooth service is
+ *  no longer required.
+ */
+- (void)didStopRequiringUserInterventionForBluetooth
+{
+    NSLog( @"User intervention for Bluetooth is no longer required." );
+
+    [self sendEventWithName:@"stopRequiringUserInterventionForLocationServices" body:@{}];
+}
+
+/*
+ *  This method is part of the Bluedot location delegate and is called when Location Services are not enabled
+ *  on the device; requiring user intervention.
+ */
+- (void)didStartRequiringUserInterventionForLocationServicesAuthorizationStatus: (CLAuthorizationStatus)authorizationStatus
+{
+    NSString *authorizationString;
+    switch(authorizationStatus){
+        case kCLAuthorizationStatusDenied:
+            authorizationString = @"denied";
+        case kCLAuthorizationStatusRestricted:
+            authorizationString = @"restricted";
+        case kCLAuthorizationStatusNotDetermined:
+            authorizationString = @"notDetermined";
+        case kCLAuthorizationStatusAuthorizedAlways:
+            authorizationString = @"always";
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            authorizationString = @"whenInUse";
+        default:
+            authorizationString = @"unknown";
+    }
+    NSLog( @"This App requires Location Services which are currently set to %@.", authorizationString );
+
+    [self sendEventWithName:@"startRequiringUserInterventionForLocationServices"
+                       body:@{@"authorizationStatus" : authorizationString}];
+
+}
+
+/*
+ *  This method is part of the Bluedot location delegate; it is called if user intervention on the device had previously
+ *  been required to enable Location Services and either Location Services has been enabled or the user is no longer
+ *  within an authenticated session, thereby no longer requiring Location Services.
+ */
+- (void)didStopRequiringUserInterventionForLocationServicesAuthorizationStatus: (CLAuthorizationStatus)authorizationStatus
+{
+    NSString *authorizationString;
+    switch(authorizationStatus){
+        case kCLAuthorizationStatusDenied:
+            authorizationString = @"denied";
+        case kCLAuthorizationStatusRestricted:
+            authorizationString = @"restricted";
+        case kCLAuthorizationStatusNotDetermined:
+            authorizationString = @"notDetermined";
+        case kCLAuthorizationStatusAuthorizedAlways:
+            authorizationString = @"always";
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            authorizationString = @"whenInUse";
+        default:
+            authorizationString = @"unknown";
+    }
+    NSLog( @"This App requires Location Services which are currently set to %@.", authorizationString );
+
+    [self sendEventWithName:@"stopRequiringUserInterventionForLocationServices"
+                       body:@{@"authorizationStatus" : authorizationString}];
+}
+
 
 /*
  *  Return an array with extrapolated zone details
