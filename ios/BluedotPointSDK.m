@@ -127,7 +127,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSArray  *returnZone = [ self zoneToArray: zone ];
     NSArray  *returnLocation = [ self locationToArray: location ];
 
-    _callbackIdCheckedIntoFence(@[returnFence, returnZone, returnLocation, customData]);
+    _callbackIdCheckedIntoFence(@[returnFence, returnZone, returnLocation]);
 }
 
 /*
