@@ -86,6 +86,10 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 }
 
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"checkedIntoFence"];
+}
+
 /*
  *  A fence with a Custom Action has been checked into.
  *
@@ -127,8 +131,14 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSArray  *returnZone = [ self zoneToArray: zone ];
     NSArray  *returnLocation = [ self locationToArray: location ];
 
+    [self sendEventWithName:@"checkedIntoFence" body:@{
+        @"fenceInfo" : returnFence,
+        @"zoneInfo" : returnZone,
+        @"locationInfo" : returnLocation,
+        @"willCheckOut" : @(willCheckOut),
+        @"customData" : customData
+    }];
 
-    _callbackIdCheckedIntoFence(@[returnFence, returnZone, returnLocation, @(willCheckOut), customData == nil ? [NSNull null] : customData ]);
 }
 
 /*
