@@ -5,7 +5,6 @@
     /*
      *  Callback identifiers for the Bluedot Location delegates.
      */
-    RCTResponseSenderBlock _callbackIdZoneInfo;
     RCTResponseSenderBlock _callbackAuthenticationSuccessful;
     RCTResponseSenderBlock _callbackAuthenticationFailed;
     RCTResponseSenderBlock _callbackLogOutSuccessful;
@@ -28,11 +27,6 @@ RCT_EXPORT_MODULE()
         _authenticated = NO;
     }
     return self;
-}
-
-RCT_EXPORT_METHOD(zoneInfoCallback:(RCTResponseSenderBlock)callback)
-{
-    _callbackIdZoneInfo = callback;
 }
 
 RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
@@ -75,8 +69,25 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"checkedIntoFence"];
+    return @[@"checkedIntoFence", @"didUpdateZoneInfo", @"checkedIntoBeacon"];
 }
+
+- (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
+    NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
+        
+    NSMutableArray  *returnZones = [ NSMutableArray new ];
+
+    for( BDZoneInfo *zone in zoneInfos )
+    {
+        [ returnZones addObject: [ self zoneToArray: zone ] ];
+    }
+    
+    [self sendEventWithName:@"didUpdateZoneInfo" body:@{
+        @"fenceInfo" : returnZones
+    }];
+
+}
+
 
 /*
  *  A fence with a Custom Action has been checked into.
@@ -104,16 +115,9 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
              willCheckOut: (BOOL)willCheckOut
            withCustomData: (NSDictionary *)customData
 {
-    NSLog( @"HERE: You have checked into fence '%@' in zone '%@', at %@%@",
+    NSLog( @"You have checked into fence '%@' in zone '%@', at %@%@",
           fence.name, zone.name, [ _dateFormatter stringFromDate: location.timestamp ],
           ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
-
-    //  Ensure that a delegate for fence info has been setup
-    if ( _callbackIdCheckedIntoFence == nil )
-    {
-        NSLog( @"Callback for fence check-ins has not been setup." );
-        return;
-    }
 
     NSArray  *returnFence = [ self fenceToArray: fence ];
     NSArray  *returnZone = [ self zoneToArray: zone ];
@@ -170,14 +174,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSLog( @"You have checked into beacon '%@' in zone '%@' with proximity %d at %@%@",
           beacon.name, zone.name, (int)proximity, [ _dateFormatter stringFromDate: location.timestamp ],
           ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
-
-    //  Ensure that a delegate for fence info has been setup
-    if ( _callbackIdCheckedIntoBeacon == nil )
-    {
-        NSLog( @"Callback for beacon check-ins has not been setup." );
-        return;
-    }
-
+    
     NSArray  *returnBeacon = [ self beaconToArray: beacon ];
     NSArray  *returnZone = [ self zoneToArray: zone ];
     NSArray  *returnLocation = [ self locationToArray: location ];
@@ -193,26 +190,6 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
 
 }
 
-- (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
-    NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
-    
-    //  Ensure that a delegate for fence info has been setup
-    if ( _callbackIdZoneInfo == nil )
-    {
-        NSLog( @"Callback for Zone Update info has not been setup." );
-        return;
-    }
-    
-    NSMutableArray  *returnZones = [ NSMutableArray new ];
-
-    for( BDZoneInfo *zone in zoneInfos )
-    {
-        [ returnZones addObject: [ self zoneToArray: zone ] ];
-    }
-    
-    _callbackIdZoneInfo(@[[NSNull null], returnZones]);
-
-}
 
 - (void)authenticationFailedWithError:(NSError *)error {
     NSLog( @"authenticationFailedWithError");
