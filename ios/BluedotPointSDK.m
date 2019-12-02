@@ -136,7 +136,7 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
         @"zoneInfo" : returnZone,
         @"locationInfo" : returnLocation,
         @"willCheckOut" : @(willCheckOut),
-        @"customData" : customData
+        @"customData" : customData != nil ? customData : [NSNull null]
     }];
 
 }
