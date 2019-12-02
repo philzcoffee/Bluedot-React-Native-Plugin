@@ -10,8 +10,6 @@
     RCTResponseSenderBlock _callbackAuthenticationFailed;
     RCTResponseSenderBlock _callbackLogOutSuccessful;
     RCTResponseSenderBlock _callbackLogOutFailed;
-    RCTResponseSenderBlock _callbackIdCheckedIntoFence;
-    RCTResponseSenderBlock _callbackIdCheckedIntoBeacon;
     
     BOOL _authenticated;
     NSDateFormatter  *_dateFormatter;
@@ -35,16 +33,6 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(zoneInfoCallback:(RCTResponseSenderBlock)callback)
 {
     _callbackIdZoneInfo = callback;
-}
-
-RCT_EXPORT_METHOD(checkedIntoFenceCallback:(RCTResponseSenderBlock)callback)
-{
-    _callbackIdCheckedIntoFence = callback;
-}
-
-RCT_EXPORT_METHOD(checkedIntoBeaconCallback:(RCTResponseSenderBlock)callback)
-{
-    _callbackIdCheckedIntoBeacon = callback;
 }
 
 RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
@@ -194,8 +182,14 @@ RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccess
     NSArray  *returnZone = [ self zoneToArray: zone ];
     NSArray  *returnLocation = [ self locationToArray: location ];
     
-    
-    _callbackIdCheckedIntoBeacon(@[returnBeacon, returnZone, returnLocation, @(proximity), @(willCheckOut), customData]);
+    [self sendEventWithName:@"checkedIntoBeacon" body:@{
+        @"fenceInfo" : returnBeacon,
+        @"zoneInfo" : returnZone,
+        @"locationInfo" : returnLocation,
+        @"proximity" : @(proximity),
+        @"willCheckOut" : @(willCheckOut),
+        @"customData" : customData != nil ? customData : [NSNull null]
+    }];
 
 }
 
