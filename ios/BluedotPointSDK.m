@@ -55,7 +55,15 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString
 
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
     NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
-    _callbackIdZoneInfo(@[[NSString stringWithFormat: @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count]]);
+    
+    NSMutableArray  *returnZones = [ NSMutableArray new ];
+
+    for( BDZoneInfo *zone in zoneInfos )
+    {
+        [ returnZones addObject: [ self zoneToArray: zone ] ];
+    }
+    
+    _callbackIdZoneInfo(@[[NSNull null], returnZones]);
 
 }
 
@@ -81,6 +89,20 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey requestAuthorization:(NSString
 
 - (void)willAuthenticateWithApiKey:(NSString *)apiKey {
     NSLog( @"willAuthenticateWithApiKey");
+}
+
+/*
+ *  Return an array with extrapolated zone details into Cordova variable types.
+ */
+- (NSArray *)zoneToArray: (BDZoneInfo *)zone
+{
+    NSMutableArray  *strings = [ NSMutableArray new ];
+
+    [ strings addObject: zone.name ];
+    [ strings addObject: ( zone.description == nil ) ? @"" : zone.description ];
+    [ strings addObject: zone.ID ];
+
+    return strings;
 }
 
 
