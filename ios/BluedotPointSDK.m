@@ -73,7 +73,7 @@ RCT_EXPORT_METHOD(notifyPushUpdateWithData: (NSDictionary *) data) {
 }
 
 
-RCT_EXPORT_METHOD(logOut: logOutSuccessful:(RCTResponseSenderBlock)logOutSuccessfulCallback
+RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     logOutFailed: (RCTResponseSenderBlock)logOutFailedCallback)
 {
     _callbackLogOutSuccessful = logOutSuccessfulCallback;
