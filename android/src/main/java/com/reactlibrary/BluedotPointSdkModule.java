@@ -163,13 +163,42 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         }
         WritableMap map = new WritableNativeMap();
         map.putArray("zoneList",zoneList);
-        sendEvent(reactContext, "ZoneInfo",map);
+        sendEvent(reactContext, "zoneInfos",map);
     }
 
     @Override
     public void onCheckIntoFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, LocationInfo locationInfo,
-            Map<String, String> map, boolean b) {
+            Map<String, String> map, boolean isCheckout) {
 
+        WritableMap fenceDetails = new WritableNativeMap();
+        fenceDetails.putString("ID",fenceInfo.getId());
+        fenceDetails.putString("name",fenceInfo.getName());
+
+        WritableMap zoneDetails = new WritableNativeMap();
+        zoneDetails.putString("ID",zoneInfo.getZoneId());
+        zoneDetails.putString("name",zoneInfo.getZoneName());
+
+        WritableMap locationDetails = new WritableNativeMap();
+        locationDetails.putDouble("unixDate", locationInfo.getTimeStamp());
+        locationDetails.putDouble("latitude", locationInfo.getLatitude());
+        locationDetails.putDouble("longitude", locationInfo.getLongitude());
+        locationDetails.putDouble("bearing", locationInfo.getBearing());
+        locationDetails.putDouble("speed", locationInfo.getSpeed());
+        WritableMap customData = new WritableNativeMap();
+        if(map != null) {
+            for (String entry : map.keySet()) {
+                customData.putString(entry, map.get(entry));
+            }
+        }
+
+        WritableMap writableMap = new WritableNativeMap();
+        writableMap.putMap("fenceInfo",fenceDetails);
+        writableMap.putMap("zoneInfo",zoneDetails);
+        writableMap.putMap("locationInfo", locationDetails);
+        writableMap.putMap("customData",customData);
+        writableMap.putBoolean("willCheckout",isCheckout);
+
+        sendEvent(reactContext, "checkedIntoFence",writableMap);
     }
 
     @Override public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int i,
