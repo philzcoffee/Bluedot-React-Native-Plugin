@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import au.com.bluedot.application.model.Proximity;
 import au.com.bluedot.point.ApplicationNotificationListener;
@@ -17,6 +18,7 @@ import au.com.bluedot.point.net.engine.BeaconInfo;
 import au.com.bluedot.point.net.engine.FenceInfo;
 import au.com.bluedot.point.net.engine.LocationInfo;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
@@ -24,6 +26,11 @@ import au.com.bluedot.point.ServiceStatusListener;
 import au.com.bluedot.point.net.engine.BDError;
 import au.com.bluedot.point.net.engine.ServiceManager;
 import au.com.bluedot.point.net.engine.ZoneInfo;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeArray;
+import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import java.util.List;
 import java.util.Map;
 
@@ -34,8 +41,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
 
     private final ReactApplicationContext reactContext;
     ServiceManager serviceManager;
-    private Callback appNotifyFenceCallback;
-    private Callback zoneInfoCallback;
+    private Callback logOutCallback;
 
     public BluedotPointSdkModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -48,6 +54,14 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         return "BluedotPointSdk";
     }
 
+    private void sendEvent(ReactContext reactContext,
+            String eventName,
+            @Nullable WritableMap params) {
+        reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName, params);
+    }
+
     @ReactMethod
     public void sampleMethod(String stringArgument, int numberArgument, Callback callback) {
         // TODO: Implement some actually useful functionality
@@ -58,18 +72,20 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     public void authenticate(String apiKey, String permLevel, Callback success,Callback fail){
         if(apiKey.equals(" "))
             apiKey="0811c6a0-0251-11e9-aebf-02e673959816";
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(reactContext.checkSelfPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
                 //serviceManager.setForegroundServiceNotification(createNotification(), false);
                 serviceManager.sendAuthenticationRequest(apiKey, this);
                 success.invoke("Success");
-            } else
-            {
-                fail.invoke("No permission");
             }
         }
+    }
+
+    @ReactMethod
+    public void logout(Callback callback){
+        logOutCallback = callback;
+        serviceManager.stopPointService();
     }
 
     @ReactMethod
@@ -124,6 +140,10 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @Override public void onBlueDotPointServiceStop() {
+        if (logOutCallback != null) {
+            logOutCallback.invoke("Success");
+        }
+        serviceManager.unsubscribeForApplicationNotification(this);
 
     }
 
@@ -132,17 +152,18 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @Override public void onRuleUpdate(List<ZoneInfo> list) {
-        if(zoneInfoCallback != null && list.size() > 0)
-            zoneInfoCallback.invoke(" Zones updated:"+list.size());
-    }
-
-    @ReactMethod public void ruleUpdateCallback(Callback callback){
-        zoneInfoCallback = callback;
-    }
-
-    @ReactMethod
-    public void checkedIntoFenceCallback(Callback callback){
-        appNotifyFenceCallback = callback;
+        WritableArray zoneList = new WritableNativeArray();
+        if(list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                WritableMap zone = new WritableNativeMap();
+                zone.putString("name",list.get(i).getZoneName());
+                zone.putString("id",list.get(i).getZoneId());
+                zoneList.pushMap(zone);
+            }
+        }
+        WritableMap map = new WritableNativeMap();
+        map.putArray("zoneList",zoneList);
+        sendEvent(reactContext, "ZoneInfo",map);
     }
 
     @Override
