@@ -9,8 +9,7 @@
     RCTResponseSenderBlock _callbackAuthenticationFailed;
     RCTResponseSenderBlock _callbackLogOutSuccessful;
     RCTResponseSenderBlock _callbackLogOutFailed;
-    
-    BOOL _authenticated;
+
     NSDateFormatter  *_dateFormatter;
 }
 
@@ -26,8 +25,6 @@ RCT_EXPORT_MODULE()
         //  Setup a generic date formatter
         _dateFormatter = [ NSDateFormatter new ];
         [ _dateFormatter setDateFormat: @"dd-MMM-yyyy HH:mm" ];
-        
-        _authenticated = NO;
     }
     return self;
 }
@@ -59,13 +56,16 @@ RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
     [ BDLocationManager.instance setCustomEventMetaData: eventMetaData ];
 }
 
-
-RCT_EXPORT_METHOD(disableZone: (NSString *) zoneId) {
-    [[ BDLocationManager instance] setZone: zoneId disableByApplication: YES ];
+RCT_EXPORT_METHOD(setForegroundNotification: (NSString *) channelId
+                  channelName: (NSString *) channelName
+                  title: (NSString *) title
+                  content: (NSString *) content
+                  targetAllAPis: (BOOL) targetAllAPis ) {
+    NSLog( @"Note: setForegroundNotification is applicable to Android only");
 }
 
-RCT_EXPORT_METHOD(enableZone: (NSString *) zoneId) {
-    [[ BDLocationManager instance] setZone: zoneId disableByApplication: NO ];
+RCT_EXPORT_METHOD(setNotificationIDResourceID: (NSString *) resourceID){
+    NSLog( @"Note: setNotificationIDResourceID is applicable to Android only");
 }
 
 RCT_EXPORT_METHOD(notifyPushUpdateWithData: (NSDictionary *) data) {
@@ -173,6 +173,11 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A beacon with a Custom Action has been checked into.
+ *  Proximity of check-in to beacon (Integer)
+ *          0 = Unknown
+ *          1 = Immediate
+ *          2 = Near
+ *          3 = Far
  */
 - (void)didCheckIntoBeacon: (BDBeaconInfo *)beacon
                     inZone: (BDZoneInfo *)zone
@@ -203,6 +208,11 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A beacon with a Custom Action has been checked out of.
+ *  Proximity of check-in to beacon (Integer)
+ *          0 = Unknown
+ *          1 = Immediate
+ *          2 = Near
+ *          3 = Far
  */
 - (void)didCheckOutFromBeacon: (BDBeaconInfo *)beacon
                        inZone: (BDZoneInfo *)zone
@@ -238,8 +248,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
     _callbackAuthenticationSuccessful = nil;
-    
-    _authenticated = NO;
 }
 
 - (void)authenticationWasDeniedWithReason:(NSString *)reason {
@@ -250,8 +258,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
     _callbackAuthenticationSuccessful = nil;
-    
-    _authenticated = NO;
 }
 
 - (void)authenticationWasSuccessful {
@@ -263,9 +269,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     //  Reset the authentication callback
     _callbackAuthenticationFailed = nil;
     _callbackAuthenticationSuccessful = nil;
-
-    //  Session is authenticated
-    _authenticated = YES;
 }
 
 - (void)didEndSession {
@@ -276,8 +279,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     //  Reset the callback
     _callbackLogOutSuccessful = nil;
     _callbackLogOutFailed = nil;
-    
-    _authenticated = NO;
 }
 
 - (void)didEndSessionWithError:(NSError *)error {
@@ -347,8 +348,9 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 }
 
 /*
- *  This method is part of the Bluedot location delegate; it is called if user intervention on the device had previously
- *  been required to enable Location Services and either Location Services has been enabled or the user is no longer
+ *  This method is part of the Bluedot location delegate; it is called if user
+ *  intervention on the device had previously been required to enable Location Services
+ *  and either Location Services has been enabled or the user is no longer
  *  within an authenticated session, thereby no longer requiring Location Services.
  */
 - (void)didStopRequiringUserInterventionForLocationServicesAuthorizationStatus: (CLAuthorizationStatus)authorizationStatus
