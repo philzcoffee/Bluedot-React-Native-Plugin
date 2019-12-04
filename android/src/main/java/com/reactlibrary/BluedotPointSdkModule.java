@@ -14,6 +14,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import au.com.bluedot.application.model.Proximity;
 import au.com.bluedot.point.ApplicationNotificationListener;
+import au.com.bluedot.point.BluetoothNotEnabledError;
+import au.com.bluedot.point.LocationServiceNotEnabledError;
 import au.com.bluedot.point.net.engine.BeaconInfo;
 import au.com.bluedot.point.net.engine.FenceInfo;
 import au.com.bluedot.point.net.engine.LocationInfo;
@@ -70,12 +72,9 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void authenticate(String apiKey, String permLevel, Callback success,Callback fail){
-        if(apiKey.equals(" "))
-            apiKey="0811c6a0-0251-11e9-aebf-02e673959816";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(reactContext.checkSelfPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
-                //serviceManager.setForegroundServiceNotification(createNotification(), false);
                 serviceManager.sendAuthenticationRequest(apiKey, this);
                 success.invoke("Success");
             }
@@ -83,14 +82,14 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void logout(Callback callback){
+    public void logOut(Callback callback,Callback fail){
         logOutCallback = callback;
         serviceManager.stopPointService();
     }
 
     @ReactMethod
-    public void setForeground(String channelId, String channelName, String title, String content){
-        serviceManager.setForegroundServiceNotification(createNotification(channelId,channelName,title,content), false);
+    public void setForeground(String channelId, String channelName, String title, String content, boolean targetAllAPis){
+        serviceManager.setForegroundServiceNotification(createNotification(channelId,channelName,title,content), targetAllAPis);
     }
 
     private Notification createNotification(String channelId,String channelName,String title, String content) {
@@ -148,7 +147,14 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @Override public void onBlueDotPointServiceError(BDError bdError) {
-
+        WritableMap error = new WritableNativeMap();
+        error.putString("error",bdError.getReason());
+        if (bdError instanceof LocationServiceNotEnabledError) {
+            sendEvent(reactContext,"startRequiringUserInterventionForLocationServices",error);
+        } else if (bdError instanceof BluetoothNotEnabledError) {
+            sendEvent(reactContext,"startRequiringUserInterventionForBluetooth",error);
+        }
+        serviceManager.stopPointService();
     }
 
     @Override public void onRuleUpdate(List<ZoneInfo> list) {
@@ -163,7 +169,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         }
         WritableMap map = new WritableNativeMap();
         map.putArray("zoneList",zoneList);
-        sendEvent(reactContext, "zoneInfos",map);
+        sendEvent(reactContext, "ZoneInfoUpdate",map);
     }
 
     @Override
