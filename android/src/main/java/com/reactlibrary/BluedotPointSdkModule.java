@@ -201,18 +201,113 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         sendEvent(reactContext, "checkedIntoFence",writableMap);
     }
 
-    @Override public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int i,
+    @Override public void onCheckedOutFromFence(FenceInfo fenceInfo, ZoneInfo zoneInfo, int dwellTime,
             Map<String, String> map) {
+        WritableMap fenceDetails = new WritableNativeMap();
+        fenceDetails.putString("ID",fenceInfo.getId());
+        fenceDetails.putString("name",fenceInfo.getName());
 
+        WritableMap zoneDetails = new WritableNativeMap();
+        zoneDetails.putString("ID",zoneInfo.getZoneId());
+        zoneDetails.putString("name",zoneInfo.getZoneName());
+
+        WritableMap customData = new WritableNativeMap();
+        if(map != null) {
+            for (String entry : map.keySet()) {
+                customData.putString(entry, map.get(entry));
+            }
+        }
+        WritableMap writableMap = new WritableNativeMap();
+        writableMap.putMap("fenceInfo",fenceDetails);
+        writableMap.putMap("zoneInfo",zoneDetails);
+        writableMap.putMap("customData",customData);
+        writableMap.putInt("dwellTime",dwellTime);
+        sendEvent(reactContext, "checkedOutFromFence",writableMap);
     }
 
     @Override public void onCheckIntoBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo,
-            LocationInfo locationInfo, Proximity proximity, Map<String, String> map, boolean b) {
+            LocationInfo locationInfo, Proximity proximity, Map<String, String> map, boolean isCheckout) {
+        WritableMap beaconDetails = new WritableNativeMap();
+        beaconDetails.putString("ID",beaconInfo.getId());
+        beaconDetails.putString("name",beaconInfo.getName());
+        beaconDetails.putString("macAddress",beaconInfo.getMacAddress());
+        beaconDetails.putDouble("latitude",beaconInfo.getLocation().getLatitude());
+        beaconDetails.putDouble("longitude",beaconInfo.getLocation().getLongitude());
 
+        WritableMap zoneDetails = new WritableNativeMap();
+        zoneDetails.putString("ID",zoneInfo.getZoneId());
+        zoneDetails.putString("name",zoneInfo.getZoneName());
+
+        WritableMap locationDetails = new WritableNativeMap();
+        locationDetails.putDouble("unixDate", locationInfo.getTimeStamp());
+        locationDetails.putDouble("latitude", locationInfo.getLatitude());
+        locationDetails.putDouble("longitude", locationInfo.getLongitude());
+        locationDetails.putDouble("bearing", locationInfo.getBearing());
+        locationDetails.putDouble("speed", locationInfo.getSpeed());
+
+        WritableMap customData = new WritableNativeMap();
+        if(map != null) {
+            for (String entry : map.keySet()) {
+                customData.putString(entry, map.get(entry));
+            }
+        }
+
+        WritableMap writableMap = new WritableNativeMap();
+        writableMap.putMap("beaconInfo",beaconDetails);
+        writableMap.putMap("zoneInfo",zoneDetails);
+        writableMap.putMap("locationInfo", locationDetails);
+        writableMap.putMap("customData",customData);
+        writableMap.putInt("proximity",getIntForProximity(proximity));
+        writableMap.putBoolean("willCheckout",isCheckout);
+
+        sendEvent(reactContext, "checkedIntoBeacon",writableMap);
     }
 
-    @Override public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int i,
+    @Override public void onCheckedOutFromBeacon(BeaconInfo beaconInfo, ZoneInfo zoneInfo, int dwellTime,
             Map<String, String> map) {
 
+        WritableMap beaconDetails = new WritableNativeMap();
+        beaconDetails.putString("ID",beaconInfo.getId());
+        beaconDetails.putString("name",beaconInfo.getName());
+        beaconDetails.putString("macAddress",beaconInfo.getMacAddress());
+        beaconDetails.putDouble("latitude",beaconInfo.getLocation().getLatitude());
+        beaconDetails.putDouble("longitude",beaconInfo.getLocation().getLongitude());
+
+        WritableMap zoneDetails = new WritableNativeMap();
+        zoneDetails.putString("ID",zoneInfo.getZoneId());
+        zoneDetails.putString("name",zoneInfo.getZoneName());
+
+        WritableMap customData = new WritableNativeMap();
+        if(map != null) {
+            for (String entry : map.keySet()) {
+                customData.putString(entry, map.get(entry));
+            }
+        }
+
+        WritableMap writableMap = new WritableNativeMap();
+        writableMap.putMap("beaconInfo",beaconDetails);
+        writableMap.putMap("zoneInfo",zoneDetails);
+        writableMap.putMap("customData",customData);
+        writableMap.putInt("dwellTime",dwellTime);
+        sendEvent(reactContext, "checkedOutFromBeacon",writableMap);
+    }
+
+    private int getIntForProximity(Proximity value) {
+        int result = 0;
+        switch (value) {
+            case Unknown:
+                result = 0;
+                break;
+            case Immediate:
+                result = 1;
+                break;
+            case Near:
+                result = 2;
+                break;
+            case Far:
+                result = 3;
+                break;
+        }
+        return result;
     }
 }
