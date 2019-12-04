@@ -65,12 +65,6 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void sampleMethod(String stringArgument, int numberArgument, Callback callback) {
-        // TODO: Implement some actually useful functionality
-        callback.invoke("Received numberArgument: " + numberArgument + " stringArgument: " + stringArgument);
-    }
-
-    @ReactMethod
     public void authenticate(String apiKey, String permLevel, Callback success,Callback fail){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(reactContext.checkSelfPermission(
