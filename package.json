@@ -1,5 +1,5 @@
 {
-  "name": "react-native-plugin",
+  "name": "@bluedot-innovation/react-native-library",
   "title": "React Native Bluedot Point SDK",
   "version": "1.0.0",
   "description": "TODO",
@@ -16,8 +16,8 @@
     "react-native"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "yourname@email.com"
+    "name": "Bluedot Innovation",
+    "email": "support@bluedot.io"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
