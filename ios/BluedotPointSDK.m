@@ -84,7 +84,7 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 - (NSArray<NSString *> *)supportedEvents {
     return @[
-        @"ruleUpdate",
+        @"zoneInfoUpdate",
         @"checkedIntoFence",
         @"checkedOutFromFence",
         @"checkedIntoBeacon",
@@ -98,13 +98,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
 *  This method is passed the Zone information utilised by the Bluedot SDK.
-*
-*  Returning:
-*      Array of zones
-*          Array of strings identifying zone:
-*              name
-*              description
-*              ID
 */
 - (void)didUpdateZoneInfo: (NSSet *)zoneInfos {
     NSLog( @"Point sdk updated with %lu zones", (unsigned long)zoneInfos.count );
@@ -113,10 +106,10 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
     for( BDZoneInfo *zone in zoneInfos )
     {
-        [ returnZones addObject: [ self zoneToArray: zone ] ];
+        [ returnZones addObject: [ self zoneToDict: zone ] ];
     }
     
-    [self sendEventWithName:@"ruleUpdate" body:@{
+    [self sendEventWithName:@"zoneInfoUpdate" body:@{
         @"zoneInfos" : returnZones
     }];
 
@@ -125,23 +118,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A fence with a Custom Action has been checked into.
- *
- *  Returns the following multipart status:
- *      Array identifying fence:
- *          name (String)
- *          description (String)
- *      Array of strings identifying zone:
- *          name (String)
- *          description (String)
- *          ID (String)
- *      Array of double values identifying location:
- *          Date of check-in (Integer - UNIX timestamp)
- *          Latitude of check-in (Double)
- *          Longitude of check-in (Double)
- *          Bearing of check-in (Double)
- *          Speed of check-in (Double)
- *      Fence is awaiting check-out (BOOL)
- *      Custom fields setup in the <b>Point Access</b> web-interface.</p>
  */
 - (void)didCheckIntoFence: (BDFenceInfo *)fence
                    inZone: (BDZoneInfo *)zone
@@ -153,9 +129,9 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
           fence.name, zone.name, [ _dateFormatter stringFromDate: location.timestamp ],
           ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
 
-    NSArray  *returnFence = [ self fenceToArray: fence ];
-    NSArray  *returnZone = [ self zoneToArray: zone ];
-    NSArray  *returnLocation = [ self locationToArray: location ];
+    NSDictionary *returnFence = [ self fenceToDict: fence ];
+    NSDictionary *returnZone = [ self zoneToDict: zone ];
+    NSDictionary *returnLocation = [ self locationToDict: location ];
 
     [self sendEventWithName:@"checkedIntoFence" body:@{
         @"fenceInfo" : returnFence,
@@ -169,17 +145,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A fence with a Custom Action has been checked out of.
- *
- *  Returns the following multipart status:
- *      Array identifying fence:
- *          name (String)
- *          description (String)
- *      Array of strings identifying zone:
- *          name (String)
- *          description (String)
- *          ID (String)
- *      Date of check-out (Integer - UNIX timestamp)
- *      Dwell time in minutes (Unsigned integer)
  */
 - (void)didCheckOutFromFence: (BDFenceInfo *)fence
                       inZone: (BDZoneInfo *)zone
@@ -191,8 +156,8 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     NSLog( @"You left fence '%@' in zone '%@', after %u minutes",
           fence.name, zone.name, (unsigned int)checkedInDuration );
 
-    NSArray  *returnFence = [ self fenceToArray: fence ];
-    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSDictionary  *returnFence = [ self fenceToDict: fence ];
+    NSDictionary *returnZone = [ self zoneToDict: zone ];
     NSTimeInterval  unixDate = [ date timeIntervalSince1970 ];
 
     [self sendEventWithName:@"checkedOutFromFence" body:@{
@@ -208,33 +173,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A beacon with a Custom Action has been checked into.
- *
- *  Returns the following multipart status:
- *      Array identifying beacon:
- *          name (String)
- *          description (String)
- *          proximity UUID (String)
- *          major (Integer)
- *          minor (Integer)
- *          latitude (Double)
- *          longitude (Double)
- *      Array of strings identifying zone:
- *          name (String)
- *          description (String)
- *          ID (String)
- *      Array of double values identifying location:
- *          Date of check-in (Integer - UNIX timestamp)
- *          Latitude of beacon setting (Double)
- *          Longitude of beacon setting (Double)
- *          Bearing of beacon setting (Double)
- *          Speed of beacon setting (Double)
- *      Proximity of check-in to beacon (Integer)
- *          0 = Unknown
- *          1 = Immediate
- *          2 = Near
- *          3 = Far
- *      Beacon is awaiting check-out (BOOL)
- *      Custom fields setup in the <b>Point Access</b> web-interface.</p>
  */
 - (void)didCheckIntoBeacon: (BDBeaconInfo *)beacon
                     inZone: (BDZoneInfo *)zone
@@ -248,9 +186,9 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
           beacon.name, zone.name, (int)proximity, [ _dateFormatter stringFromDate: location.timestamp ],
           ( willCheckOut == YES ) ? @" and awaiting check out" : @"" );
     
-    NSArray  *returnBeacon = [ self beaconToArray: beacon ];
-    NSArray  *returnZone = [ self zoneToArray: zone ];
-    NSArray  *returnLocation = [ self locationToArray: location ];
+    NSDictionary *returnBeacon = [ self beaconToDict: beacon ];
+    NSDictionary *returnZone = [ self zoneToDict: zone ];
+    NSDictionary *returnLocation = [ self locationToDict: location ];
     
     [self sendEventWithName:@"checkedIntoBeacon" body:@{
         @"beaconInfo" : returnBeacon,
@@ -265,27 +203,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 /*
  *  A beacon with a Custom Action has been checked out of.
- *
- *  Returns the following multipart status:
- *      Array identifying beacon:
- *          name (String)
- *          description (String)
- *          proximity UUID (String)
- *          major (Integer)
- *          minor (Integer)
- *          latitude (Double)
- *          longitude (Double)
- *      Array of strings identifying zone:
- *          name (String)
- *          description (String)
- *          ID (String)
- *      Proximity of check-in to beacon (Integer)
- *          0 = Unknown
- *          1 = Immediate
- *          2 = Near
- *          3 = Far
- *      Date of check-in (Integer - UNIX timestamp)
- *      Dwell time in minutes (Unsigned integer)
  */
 - (void)didCheckOutFromBeacon: (BDBeaconInfo *)beacon
                        inZone: (BDZoneInfo *)zone
@@ -299,8 +216,8 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
           beacon.name, zone.name, (int)proximity, [ _dateFormatter stringFromDate: date ],
           (unsigned int)checkedInDuration );
 
-    NSArray  *returnBeacon = [ self beaconToArray: beacon ];
-    NSArray  *returnZone = [ self zoneToArray: zone ];
+    NSDictionary *returnBeacon = [ self beaconToDict: beacon ];
+    NSDictionary *returnZone = [ self zoneToDict: zone ];
     NSTimeInterval  unixDate = [ date timeIntervalSince1970 ];
 
     [self sendEventWithName:@"checkedOutFromBeacon" body:@{
@@ -459,94 +376,65 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 
 /*
- *  Return an array with extrapolated zone details
+ *  Return an NSDictionary with extrapolated zone details
  */
-- (NSArray *)zoneToArray: (BDZoneInfo *)zone
+- (NSDictionary *)zoneToDict: (BDZoneInfo *)zone
 {
-    NSMutableArray  *strings = [ NSMutableArray new ];
+    NSMutableDictionary  *dict = [ NSMutableDictionary new ];
 
-    [ strings addObject: zone.name ];
-    [ strings addObject: ( zone.description == nil ) ? @"" : zone.description ];
-    [ strings addObject: zone.ID ];
+    [ dict setObject:zone.name forKey:@"name"];
+    [ dict setObject:zone.ID forKey:@"ID"];
 
-    return strings;
+    return dict;
 }
 
 /*
- *  Return an array with extrapolated fence details into
- *      Array identifying fence:
- *          name (String)
- *          description (String)
- *          ID (String)
+ *  Return a NSDictionary with extrapolated fence details into
  */
-- (NSArray *)fenceToArray: (BDFenceInfo *)fence
+- (NSDictionary *)fenceToDict: (BDFenceInfo *)fence
 {
-    NSMutableArray  *strings = [ NSMutableArray new ];
+    NSMutableDictionary  *dict = [ NSMutableDictionary new ];
 
-    [ strings addObject: fence.name ];
-    [ strings addObject: ( fence.description == nil ) ? @"" : fence.description ];
-    [ strings addObject: fence.ID ];
+    [ dict setObject:fence.name forKey:@"name"];
+    [ dict setObject:fence.ID forKey:@"ID"];
 
-    return strings;
+    return dict;
 }
 
 /*
- *  Return an array with extrapolated beacon details into
- *      Array identifying beacon:
- *          name (String)
- *          description (String)
- *          ID (String)
- *          isiBeacon (BOOL)
- *          proximity UUID (String)
- *          major (Integer)
- *          minor (Integer)
- *          MAC address (String)
- *          latitude (Double)
- *          longitude (Double)
+ *  Return an NSDictionary with extrapolated beacon details into
  */
-- (NSArray *)beaconToArray: (BDBeaconInfo *)beacon
+- (NSDictionary *)beaconToDict: (BDBeaconInfo *)beacon
 {
-    NSMutableArray  *objs = [ NSMutableArray new ];
+    NSMutableDictionary  *dict = [ NSMutableDictionary new ];
 
-    [ objs addObject: beacon.name ];
-    [ objs addObject: ( beacon.description == nil ) ? @"" : beacon.description ];
-    [ objs addObject: beacon.ID ];
+    [ dict setObject:beacon.name forKey:@"name"];
+    [ dict setObject:beacon.ID forKey:@"ID"];
+    [ dict setObject:beacon.proximityUuid forKey:@"proximityUUID"];
+    [ dict setObject:@( beacon.major ) forKey:@"major"];
+    [ dict setObject:@( beacon.minor ) forKey:@"minor"];
+    [ dict setObject:[ NSNull null ] forKey:@"macAddress"];
+    [ dict setObject:@( beacon.location.latitude ) forKey:@"latitude"];
+    [ dict setObject:@( beacon.location.longitude ) forKey:@"longitude"];
 
-    [ objs addObject: @(YES) ];
-    [ objs addObject: beacon.proximityUuid ];
-    [ objs addObject: @( beacon.major ) ];
-    [ objs addObject: @( beacon.minor ) ];
-
-    //  Arrays cannot contain nil, add an NSNULL object
-    [ objs addObject: [ NSNull null ] ];
-
-    [ objs addObject: @( beacon.location.latitude ) ];
-    [ objs addObject: @( beacon.location.longitude ) ];
-
-    return objs;
+    return dict;
 }
 
 /*
- *  Return an array with extrapolated location details into
- *      Array identifying location:
- *          Date of check-in (Integer - UNIX timestamp)
- *          Latitude of check-in (Double)
- *          Longitude of check-in (Double)
- *          Bearing of check-in (Double)
- *          Speed of check-in (Double)
+ *  Return an NSDictionary with extrapolated location details into
  */
-- (NSArray *)locationToArray: (BDLocationInfo *)location
+- (NSDictionary *)locationToDict: (BDLocationInfo *)location
 {
-    NSMutableArray  *doubles = [ NSMutableArray new ];
-
+    NSMutableDictionary  *dict = [ NSMutableDictionary new ];
     NSTimeInterval  unixDate = [ location.timestamp timeIntervalSince1970 ];
-    [ doubles addObject: @( unixDate ) ];
-    [ doubles addObject: @( location.latitude ) ];
-    [ doubles addObject: @( location.longitude ) ];
-    [ doubles addObject: @( location.bearing ) ];
-    [ doubles addObject: @( location.speed ) ];
+    
+    [ dict setObject:@( unixDate ) forKey:@"unixDate"];
+    [ dict setObject:@( location.latitude ) forKey:@"latitude"];
+    [ dict setObject:@( location.longitude ) forKey:@"longitude"];
+    [ dict setObject:@( location.bearing ) forKey:@"bearing"];
+    [ dict setObject:@( location.speed ) forKey:@"speed"];
 
-    return doubles;
+    return dict;
 }
 
 @end
