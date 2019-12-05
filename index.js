@@ -37,8 +37,7 @@ const BluedotPointSDK = {
     unsubscribe, 
     setForegroundNotification, 
     setCustomEventMetaData,
-    setNotificationIdResourceId,
-    notifyPushUpdateWithData
+    setNotificationIdResourceId
 }
 
 export default BluedotPointSDK
