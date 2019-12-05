@@ -149,10 +149,12 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         error.putString("error",bdError.getReason());
         if (bdError instanceof LocationServiceNotEnabledError) {
             sendEvent(reactContext,"startRequiringUserInterventionForLocationServices",error);
+            serviceManager.stopPointService();
         } else if (bdError instanceof BluetoothNotEnabledError) {
             sendEvent(reactContext,"startRequiringUserInterventionForBluetooth",error);
+            serviceManager.stopPointService();
         }
-        serviceManager.stopPointService();
+
     }
 
     @Override public void onRuleUpdate(List<ZoneInfo> list) {
