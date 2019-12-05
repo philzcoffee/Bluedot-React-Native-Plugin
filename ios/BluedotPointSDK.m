@@ -170,7 +170,6 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
 
 }
 
-
 /*
  *  A beacon with a Custom Action has been checked into.
  *  Proximity of check-in to beacon (Integer)
