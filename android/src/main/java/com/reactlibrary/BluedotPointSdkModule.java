@@ -16,23 +16,26 @@ import au.com.bluedot.application.model.Proximity;
 import au.com.bluedot.point.ApplicationNotificationListener;
 import au.com.bluedot.point.BluetoothNotEnabledError;
 import au.com.bluedot.point.LocationServiceNotEnabledError;
+import au.com.bluedot.point.ServiceStatusListener;
+import au.com.bluedot.point.net.engine.BDError;
 import au.com.bluedot.point.net.engine.BeaconInfo;
 import au.com.bluedot.point.net.engine.FenceInfo;
 import au.com.bluedot.point.net.engine.LocationInfo;
+import au.com.bluedot.point.net.engine.ServiceManager;
+import au.com.bluedot.point.net.engine.ZoneInfo;
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.facebook.react.bridge.Callback;
-import au.com.bluedot.point.ServiceStatusListener;
-import au.com.bluedot.point.net.engine.BDError;
-import au.com.bluedot.point.net.engine.ServiceManager;
-import au.com.bluedot.point.net.engine.ZoneInfo;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +56,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
 
     @Override
     public String getName() {
-        return "BluedotPointSdk";
+        return "BluedotPointSDK";
     }
 
     private void sendEvent(ReactContext reactContext,
@@ -82,7 +85,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void setForeground(String channelId, String channelName, String title, String content, boolean targetAllAPis){
+    public void setForegroundNotification(String channelId, String channelName, String title, String content, boolean targetAllAPis){
         serviceManager.setForegroundServiceNotification(createNotification(channelId,channelName,title,content), targetAllAPis);
     }
 
@@ -145,10 +148,12 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         error.putString("error",bdError.getReason());
         if (bdError instanceof LocationServiceNotEnabledError) {
             sendEvent(reactContext,"startRequiringUserInterventionForLocationServices",error);
+            serviceManager.stopPointService();
         } else if (bdError instanceof BluetoothNotEnabledError) {
             sendEvent(reactContext,"startRequiringUserInterventionForBluetooth",error);
+            serviceManager.stopPointService();
         }
-        serviceManager.stopPointService();
+
     }
 
     @Override public void onRuleUpdate(List<ZoneInfo> list) {
@@ -157,13 +162,13 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
             for (int i = 0; i < list.size(); i++) {
                 WritableMap zone = new WritableNativeMap();
                 zone.putString("name",list.get(i).getZoneName());
-                zone.putString("id",list.get(i).getZoneId());
+                zone.putString("ID",list.get(i).getZoneId());
                 zoneList.pushMap(zone);
             }
         }
         WritableMap map = new WritableNativeMap();
-        map.putArray("zoneList",zoneList);
-        sendEvent(reactContext, "ZoneInfoUpdate",map);
+        map.putArray("zoneInfos",zoneList);
+        sendEvent(reactContext, "zoneInfoUpdate",map);
     }
 
     @Override
@@ -291,6 +296,25 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         writableMap.putInt("dwellTime",dwellTime);
         sendEvent(reactContext, "checkedOutFromBeacon",writableMap);
     }
+
+    @ReactMethod
+    public void setCustomEventMetaData(ReadableMap metaData){
+       if(metaData != null) {
+           ReadableMapKeySetIterator mapKeySetIterator = metaData.keySetIterator();
+           HashMap<String, String> metaDataMap = new HashMap<>();
+           while (mapKeySetIterator.hasNextKey()) {
+               String key = mapKeySetIterator.nextKey();
+               metaDataMap.put(key, metaData.getString(key));
+           }
+           serviceManager.setCustomEventMetaData(metaDataMap);
+       }
+    }
+
+    @ReactMethod
+    public void setNotificationIDResourceID(String resourceID){
+
+    }
+
 
     private int getIntForProximity(Proximity value) {
         int result = 0;
