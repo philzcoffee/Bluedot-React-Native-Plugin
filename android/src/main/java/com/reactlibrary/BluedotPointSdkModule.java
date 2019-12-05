@@ -310,6 +310,12 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
        }
     }
 
+    @ReactMethod
+    public void setNotificationIDResourceID(String resourceID){
+
+    }
+
+
     private int getIntForProximity(Proximity value) {
         int result = 0;
         switch (value) {
