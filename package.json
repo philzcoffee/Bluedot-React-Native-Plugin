@@ -1,5 +1,5 @@
 {
-  "name": "@bluedot-innovation/react-native-library",
+  "name": "bluedot-react-native",
   "title": "React Native Bluedot Point SDK",
   "version": "1.0.0",
   "description": "Bluedot Point SDK React Native SDK; integrates the Android and iOS Point SDK libraries",
@@ -9,8 +9,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-plugin.git",
-    "baseUrl": "https://github.com/github_account/react-native-plugin-sdk"
+    "url": "git+https://github.com/github_account/bluedot-react-native.git",
+    "baseUrl": "https://github.com/github_account/bluedot-react-native"
   },
   "keywords": [
     "react-native",
