@@ -9,10 +9,14 @@
 `$ react-native link bluedot-react-native`
 
 ### For iOS
-Install Pods
+1. Install Pods
 
-`$ cd ios`
-`$ pod install`
+```
+$ cd ios
+$ pod install
+```
+
+2. Setup your .plist file as laid out on this [documentation page](https://docs.bluedot.io/ios-sdk/ios-integrating-the-sdk/).
 
 ### For Android
 Make sure Jetify is available in your development environment
