@@ -8,6 +8,17 @@
 
 `$ react-native link bluedot-react-native`
 
+### For iOS
+Install Pods
+
+`$ cd ios`
+`$ pod install`
+
+### For Android
+Make sure Jetify is available in your development environment
+
+`$ npx jetify`
+
 ## Usage
 ```javascript
 import BluedotPointSdk from 'bluedot-react-native';
