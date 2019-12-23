@@ -42,7 +42,6 @@ buck-out/
 \.buckd/
 *.keystore
 
-neha-react-native-library.podspec
 # XCode
 ios/Carthage/Checkouts
 ios/Carthage/Build
