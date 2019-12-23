@@ -81,6 +81,10 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     [ BDLocationManager.instance logOut ];
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+    return YES;
+}
 
 - (NSArray<NSString *> *)supportedEvents {
     return @[
