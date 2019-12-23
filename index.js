@@ -30,12 +30,12 @@ const unsubscribe = (eventName, callback) => {
     eventEmitter.removeListener(eventName, callback)
 }
 
-const BluedotPointSDK = {
-    authenticate,
-    logOut,
-    on,
-    unsubscribe,
-    setForegroundNotification,
+const BluedotPointSDK = { 
+    authenticate, 
+    logOut, 
+    on, 
+    unsubscribe, 
+    setForegroundNotification, 
     setCustomEventMetaData,
     setNotificationIdResourceId
 }

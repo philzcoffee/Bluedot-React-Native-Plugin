@@ -36,6 +36,8 @@ build/
 .project
 local.properties
 *.iml
+.classpath
+.core.prefs
 
 # BUCK
 buck-out/
