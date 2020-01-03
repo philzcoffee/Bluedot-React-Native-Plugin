@@ -29,7 +29,7 @@ RCT_EXPORT_MODULE()
     return self;
 }
 
-RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
+RCT_EXPORT_METHOD(authenticate:(NSString *)projectId
     requestAuthorization:(NSString *)authorizationLevel
     authenticationSuccessful:(RCTResponseSenderBlock)authenticationSuccessfulCallback
     authenticationFailed: (RCTResponseSenderBlock)authenticationFailedCallback)
@@ -48,7 +48,7 @@ RCT_EXPORT_METHOD(authenticate:(NSString *)apiKey
     
     NSLog( @"%@", BDLocationManager.instance);
 
-    [[BDLocationManager instance] authenticateWithApiKey: apiKey requestAuthorization: bdAuthorizationLevel];
+    [[BDLocationManager instance] authenticateWithApiKey: projectId requestAuthorization: bdAuthorizationLevel];
 }
 
 RCT_EXPORT_METHOD(setCustomEventMetaData: (NSDictionary *) eventMetaData)
@@ -294,8 +294,8 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     _callbackLogOutFailed = nil;
 }
 
-- (void)willAuthenticateWithApiKey:(NSString *)apiKey {
-    NSLog( @"Authenticating Point service with [%@]", apiKey);
+- (void)willAuthenticateWithApiKey:(NSString *)projectId {
+    NSLog( @"Authenticating Point service with [%@]", projectId);
 }
 
 /*

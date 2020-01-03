@@ -68,11 +68,11 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void authenticate(String apiKey, String permLevel, Callback success,Callback fail){
+    public void authenticate(String projectId, String permLevel, Callback success,Callback fail){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(reactContext.checkSelfPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
-                serviceManager.sendAuthenticationRequest(apiKey, this);
+                serviceManager.sendAuthenticationRequest(projectId, this);
                 success.invoke("Success");
             }
         }

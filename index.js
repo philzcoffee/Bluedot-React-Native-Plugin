@@ -2,8 +2,8 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 
 const eventEmitter = new NativeEventEmitter(NativeModules.BluedotPointSDK)
 
-const authenticate = (apiKey, authorizationLevel, onSucessCallback, onFailCallback) => {
-    NativeModules.BluedotPointSDK.authenticate(apiKey, authorizationLevel, onSucessCallback, onFailCallback)
+const authenticate = (projectId, authorizationLevel, onSucessCallback, onFailCallback) => {
+    NativeModules.BluedotPointSDK.authenticate(projectId, authorizationLevel, onSucessCallback, onFailCallback)
 }
 
 const logOut = (onSucessCallback, onFailCallback) => {
