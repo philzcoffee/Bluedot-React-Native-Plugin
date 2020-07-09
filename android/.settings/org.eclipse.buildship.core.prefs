@@ -1,7 +1,10 @@
+=\=\=\=\=\=\=
+<<<<<<<=HEAD
+>>>>>>>=8c19caba5f75e2e7b2780ff09c846ea70a4003e7
 arguments=
 auto.sync=false
 build.scans.enabled=false
-connection.gradle.distribution=GRADLE_DISTRIBUTION(VERSION(6.3))
+connection.gradle.distribution=GRADLE_DISTRIBUTION(WRAPPER)
 connection.project.dir=
 eclipse.preferences.version=1
 gradle.user.home=
