@@ -30,6 +30,14 @@ const unsubscribe = (eventName, callback) => {
     eventEmitter.removeListener(eventName, callback)
 }
 
+const startTempoTracking = (destinationId, callback) => {
+    NativeModules.BluedotPointSDK.startTempoTracking(destinationId, callback)
+}
+
+const stopTempoTracking = () => {
+    NativeModules.BluedotPointSDK.stopTempoTracking()
+}
+
 const BluedotPointSDK = { 
     authenticate, 
     logOut, 
@@ -37,7 +45,9 @@ const BluedotPointSDK = {
     unsubscribe, 
     setForegroundNotification, 
     setCustomEventMetaData,
-    setNotificationIdResourceId
+    setNotificationIdResourceId,
+    startTempoTracking,
+    stopTempoTracking
 }
 
 export default BluedotPointSDK

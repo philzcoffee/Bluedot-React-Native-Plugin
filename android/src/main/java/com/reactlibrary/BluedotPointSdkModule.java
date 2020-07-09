@@ -22,6 +22,7 @@ import au.com.bluedot.point.net.engine.BeaconInfo;
 import au.com.bluedot.point.net.engine.FenceInfo;
 import au.com.bluedot.point.net.engine.LocationInfo;
 import au.com.bluedot.point.net.engine.ServiceManager;
+import au.com.bluedot.point.net.engine.TempoStatusListener;
 import au.com.bluedot.point.net.engine.ZoneInfo;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -68,7 +69,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void authenticate(String projectId, String permLevel, Callback success,Callback fail){
+    public void authenticate(String projectId, String permLevel, Callback success, Callback fail){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if(reactContext.checkSelfPermission(
                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
@@ -79,7 +80,7 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void logOut(Callback callback,Callback fail){
+    public void logOut(Callback callback, Callback fail){
         logOutCallback = callback;
         serviceManager.stopPointService();
     }
@@ -138,9 +139,12 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     @Override public void onBlueDotPointServiceStop() {
         if (logOutCallback != null) {
             logOutCallback.invoke("Success");
+
+            // Reset callbacks.
+            // React Native Callbacks can be invoked only once. More info: https://reactnative.dev/docs/native-modules-android.html#callbacks
+            logOutCallback = null;
         }
         serviceManager.unsubscribeForApplicationNotification(this);
-
     }
 
     @Override public void onBlueDotPointServiceError(BDError bdError) {
@@ -312,9 +316,38 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
 
     @ReactMethod
     public void setNotificationIDResourceID(String resourceID){
-
+        // the setNotificationIDResourceID method is added to keep consistency with the iOS implementation
     }
 
+    @ReactMethod
+    public void startTempoTracking(String destinationId, final Callback failedCallback){
+        TempoStatusListener listener = new TempoStatusListener() {
+            @Override public void tempoStarted() {
+                sendEvent(reactContext, "tempoStarted", null);
+            }
+            
+            @Override public void tempoStopped() {
+                sendEvent(reactContext, "tempoStopped", null);
+            }
+
+            @Override public void tempoStartError(BDError bdError) {
+                String exceptionAsString = bdError.getReason();
+                failedCallback.invoke(exceptionAsString);
+
+                WritableMap errorMap = new WritableNativeMap();
+                errorMap.putString("error", exceptionAsString);
+
+                sendEvent(reactContext, "tempoStartError", errorMap);
+            }
+        };
+
+        serviceManager.startTempoTracking(destinationId, listener);
+    }
+
+    @ReactMethod
+    public void stopTempoTracking(){
+        serviceManager.stopTempoTracking();
+    }
 
     private int getIntForProximity(Proximity value) {
         int result = 0;

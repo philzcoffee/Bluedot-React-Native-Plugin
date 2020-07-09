@@ -21,6 +21,7 @@ RCT_EXPORT_MODULE()
         
         BDLocationManager.instance.sessionDelegate = self;
         BDLocationManager.instance.locationDelegate = self;
+        BDLocationManager.instance.tempoTrackingDelegate = self;
 
         //  Setup a generic date formatter
         _dateFormatter = [ NSDateFormatter new ];
@@ -81,6 +82,24 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     [ BDLocationManager.instance logOut ];
 }
 
+RCT_EXPORT_METHOD(startTempoTracking: (NSString *) destinationId
+                  _callbackStartTempoError: (RCTResponseSenderBlock) startTempoFailedCallback)
+{   
+    @try {
+        NSLog( @"Start Tempo Tracking");
+        [ BDLocationManager.instance startTempoTracking: destinationId ];
+    }
+    @catch ( NSException *e ) {
+        startTempoFailedCallback(@[e.name]);
+    }
+}
+
+RCT_EXPORT_METHOD(stopTempoTracking)
+{   
+    NSLog( @"Stop Tempo Tracking");
+    [ BDLocationManager.instance stopTempoTracking ];
+}
+
 + (BOOL)requiresMainQueueSetup
 {
     return YES;
@@ -96,9 +115,27 @@ RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
         @"startRequiringUserInterventionForBluetooth",
         @"stopRequiringUserInterventionForBluetooth",
         @"startRequiringUserInterventionForLocationServices",
-        @"stopRequiringUserInterventionForLocationServices"
+        @"stopRequiringUserInterventionForLocationServices",
+        @"tempoStarted",
+        @"tempoStopped",
+        @"tempoStartError"
     ];
 }
+
+- (void)didStartTracking {
+    [self sendEventWithName:@"tempoStarted" body:@{}];
+}
+
+- (void)didStopTracking {
+    [self sendEventWithName:@"tempoStopped" body:@{}];
+}
+
+- (void)didStopTrackingWithError: (NSError *)error {
+    [self sendEventWithName:@"tempoStartError" body:@{
+        @"error" : error
+    }];
+}
+
 
 /*
 *  This method is passed the Zone information utilised by the Bluedot SDK.

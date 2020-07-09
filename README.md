@@ -96,6 +96,17 @@ componentDidMount = async () => {
     BluedotPointSdk.on('stopRequiringUserInterventionForLocationServices', (event) => {
       // ...
     })
+
+    // Tempo events
+    BluedotPointSdk.on('tempoStarted', () => {
+      // ...
+    })
+    BluedotPointSdk.on('tempoStopped', () => {
+      // ...
+    })
+    BluedotPointSdk.on('tempoStartError', (error) => {
+      // ...
+    })
   }
 
 ```
@@ -237,4 +248,35 @@ componentDidMount = async () => {
 {
     "authorizationStatus": "denied" // Or: restricted, notDetermined, always, whenInUse, unknown
 }
+```
+
+## Tempo
+
+With Tempo, you can understand customers’ estimated time of arrival (ETA) via the app. 
+For further information refer to [Tempo Documentation](https://docs.bluedot.io/tempo/)
+
+#### startTempoTracking
+```javascript
+// Start Bluedot Tempo tracking
+BluedotPointSdk.startTempoTracking('the_destinationId_goes_here', (error) => console.error("On fail", error))
+```
+#### stopTempoTracking
+```javascript
+// Stop Bluedot Tempo tracking
+BluedotPointSdk.stopTempoTracking()
+```
+
+#### Tempo Events
+```javascript
+BluedotPointSdk.on('tempoStarted', () => {
+    // ...
+})
+
+BluedotPointSdk.on('tempoStopped', () => {
+    // ...
+})
+
+BluedotPointSdk.on('tempoStartError', (error) => {
+    // ...
+})
 ```
