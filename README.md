@@ -59,7 +59,7 @@ componentDidMount = async () => {
     BluedotPointSdk.setCustomEventMetaData({ userId: 'user_id_goes_here' })
 
     // Start Bluedot SDK
-    BluedotPointSdk.authenticate('your_application_project_id', '<Always|WhileInUse>', () => console.log("On success"), () => console.log("On fail"))
+    BluedotPointSdk.authenticate('your_application_project_id', '<Always|WhenInUse>', () => console.log("On success"), () => console.log("On fail"))
 
     BluedotPointSdk.on('zoneInfoUpdate', (event) => {
       // ...
