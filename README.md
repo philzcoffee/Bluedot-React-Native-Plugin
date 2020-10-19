@@ -9,10 +9,13 @@
 `$ react-native link bluedot-react-native`
 
 ### For iOS
-1. Install Pods
+1. Install `git-lfs` 
+2. Install Pods
 
 ```
 $ cd ios
+$ brew install git-lfs
+$ git lfs install 
 $ pod install
 ```
 
