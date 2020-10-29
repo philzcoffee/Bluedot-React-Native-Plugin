@@ -25,6 +25,7 @@ import au.com.bluedot.point.net.engine.ServiceManager;
 import au.com.bluedot.point.net.engine.TempoStatusListener;
 import au.com.bluedot.point.net.engine.ZoneInfo;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -347,6 +348,16 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     @ReactMethod
     public void stopTempoTracking(){
         serviceManager.stopTempoTracking();
+    }
+
+    @ReactMethod
+    public void getInstallRef(Promise promise){
+        try {
+            String installRef = serviceManager.getInstallRef();
+            promise.resolve(installRef);
+        } catch (Exception e) {
+            promise.reject("Error getting the Installation Reference");
+        }
     }
 
     private int getIntForProximity(Proximity value) {

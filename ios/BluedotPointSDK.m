@@ -100,6 +100,23 @@ RCT_EXPORT_METHOD(stopTempoTracking)
     [ BDLocationManager.instance stopTempoTracking ];
 }
 
+/*
+*  This method returns a JavaScript Promise. Resolves the installRef from the BDLocationManager and Rejects and error.
+*/
+RCT_REMAP_METHOD(getInstallRef,
+                  getInstallRefWithResolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+{   
+    NSString *installRef = [ BDLocationManager.instance installRef ];
+
+    if (installRef) {
+        resolve(installRef);
+    } else {
+        NSError *error = nil;
+        reject(@"no_events", @"There were no events", error);
+    }
+}
+
 + (BOOL)requiresMainQueueSetup
 {
     return YES;
