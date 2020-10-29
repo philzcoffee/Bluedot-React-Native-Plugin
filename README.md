@@ -110,6 +110,14 @@ componentDidMount = async () => {
     BluedotPointSdk.on('tempoStartError', (error) => {
       // ...
     })
+
+    // Get Installation Reference.
+    try {
+        const installRef = await BluedotPointSdk.getInstallRef()
+        console.log(installRef)
+    } catch (error) {
+        console.error(error)
+    }
   }
 
 ```
