@@ -38,6 +38,10 @@ const stopTempoTracking = () => {
     NativeModules.BluedotPointSDK.stopTempoTracking()
 }
 
+const getInstallRef = () => {
+    return NativeModules.BluedotPointSDK.getInstallRef()
+}
+
 const BluedotPointSDK = { 
     authenticate, 
     logOut, 
@@ -47,7 +51,8 @@ const BluedotPointSDK = {
     setCustomEventMetaData,
     setNotificationIdResourceId,
     startTempoTracking,
-    stopTempoTracking
+    stopTempoTracking,
+    getInstallRef
 }
 
 export default BluedotPointSDK
