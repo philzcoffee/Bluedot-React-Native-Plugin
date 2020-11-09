@@ -118,6 +118,14 @@ componentDidMount = async () => {
     } catch (error) {
         console.error(error)
     }
+
+    // Check if the Bluedot SDK is already running.
+    try {
+        const isBluedotServiceRunning = await isBlueDotPointServiceRunning.getInstallRef()
+        console.log(isBluedotServiceRunning)
+    } catch (error) {
+        console.error(error)
+    }
   }
 
 ```

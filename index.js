@@ -42,6 +42,10 @@ const getInstallRef = () => {
     return NativeModules.BluedotPointSDK.getInstallRef()
 }
 
+const isBlueDotPointServiceRunning = () => {
+    return NativeModules.BluedotPointSDK.isBlueDotPointServiceRunning()
+}
+
 const BluedotPointSDK = { 
     authenticate, 
     logOut, 
@@ -52,7 +56,8 @@ const BluedotPointSDK = {
     setNotificationIdResourceId,
     startTempoTracking,
     stopTempoTracking,
-    getInstallRef
+    getInstallRef,
+    isBlueDotPointServiceRunning
 }
 
 export default BluedotPointSDK
