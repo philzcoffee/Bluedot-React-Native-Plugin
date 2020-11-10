@@ -121,7 +121,7 @@ componentDidMount = async () => {
 
     // Check if the Bluedot SDK is already running.
     try {
-        const isBluedotServiceRunning = await isBlueDotPointServiceRunning.getInstallRef()
+        const isBluedotServiceRunning = await BluedotPointSdk.isBlueDotPointServiceRunning()
         console.log(isBluedotServiceRunning)
     } catch (error) {
         console.error(error)
