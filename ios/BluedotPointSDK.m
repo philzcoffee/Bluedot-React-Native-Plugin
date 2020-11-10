@@ -117,6 +117,16 @@ RCT_REMAP_METHOD(getInstallRef,
     }
 }
 
+RCT_REMAP_METHOD(isBlueDotPointServiceRunning,
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter: (RCTPromiseRejectBlock)reject)
+{   
+    BOOL isAuthenticated = BDLocationManager.instance.authenticationState == BDAuthenticationStateAuthenticated;
+    NSNumber *output=[NSNumber numberWithBool:isAuthenticated]; 
+
+    resolve(output);
+}
+
 + (BOOL)requiresMainQueueSetup
 {
     return YES;

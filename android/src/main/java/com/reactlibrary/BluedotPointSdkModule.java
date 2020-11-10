@@ -360,6 +360,16 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
         }
     }
 
+    @ReactMethod
+    public void isBlueDotPointServiceRunning(Promise promise){
+        try {
+            boolean isRunning = serviceManager.isBlueDotPointServiceRunning();
+            promise.resolve(isRunning);
+        } catch (Exception e) {
+            promise.reject("Error getting the isRunning");
+        }
+    }
+
     private int getIntForProximity(Proximity value) {
         int result = 0;
         switch (value) {
