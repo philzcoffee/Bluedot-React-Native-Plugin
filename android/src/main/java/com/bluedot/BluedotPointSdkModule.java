@@ -1,4 +1,4 @@
-package com.reactlibrary;
+package com.bluedot;
 
 import android.Manifest;
 import android.app.Notification;
