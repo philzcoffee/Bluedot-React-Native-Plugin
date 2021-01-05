@@ -69,6 +69,24 @@ RCT_EXPORT_METHOD(setNotificationIDResourceID: (NSString *) resourceID){
     NSLog( @"Note: setNotificationIDResourceID is applicable to Android only");
 }
 
+RCT_EXPORT_METHOD(startGeoTriggeringWithAppRestartNotificationTitle:(NSString *_Nonnull)title
+                  notificationButtonText:(NSString *_Nonnull)buttonText
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSLog( @"Start Geo Triggering");
+
+    [[BDLocationManager instance] startGeoTriggeringWithAppRestartNotificationTitle: title notificationButtonText: buttonText completion:^(NSError *error) {
+      if (error) {
+          NSLog( @"Geo Tracking error [%@]", error);
+
+          reject(nil, nil, error);
+      } else {
+          resolve(@"Geo Tracking success");
+      }
+    }];
+}
+
 RCT_EXPORT_METHOD(notifyPushUpdateWithData: (NSDictionary *) data) {
     [[ BDLocationManager instance] notifyPushUpdateWithData:data];
 }

@@ -22,6 +22,10 @@ const setForegroundNotification = (channelId, channelName, title, content, targe
     NativeModules.BluedotPointSDK.setForegroundNotification(channelId, channelName, title, content, targetAllApis)
 }
 
+const startGeoTriggering = (title, buttonText) => {
+    return NativeModules.BluedotPointSDK.startGeoTriggeringWithAppRestartNotificationTitle(title, buttonText)
+}
+
 const on = (eventName, callback) => {
     eventEmitter.addListener(eventName, callback)
 }
@@ -54,6 +58,7 @@ const BluedotPointSDK = {
     setForegroundNotification, 
     setCustomEventMetaData,
     setNotificationIdResourceId,
+    startGeoTriggering,
     startTempoTracking,
     stopTempoTracking,
     getInstallRef,

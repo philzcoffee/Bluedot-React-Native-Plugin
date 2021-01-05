@@ -321,6 +321,11 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
+    public void startGeoTriggeringWithAppRestartNotificationTitle(String title, String buttonText, Promise promise){
+        promise.resolve();
+    }
+
+    @ReactMethod
     public void startTempoTracking(String destinationId, final Callback failedCallback){
         TempoStatusListener listener = new TempoStatusListener() {
             @Override public void tempoStarted() {
