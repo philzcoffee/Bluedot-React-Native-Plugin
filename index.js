@@ -26,6 +26,10 @@ const startGeoTriggering = (title, buttonText) => {
     return NativeModules.BluedotPointSDK.startGeoTriggeringWithAppRestartNotificationTitle(title, buttonText)
 }
 
+const stopGeoTriggering = () => {
+    return NativeModules.BluedotPointSDK.stopGeoTriggeringWithCompletion()
+}
+
 const on = (eventName, callback) => {
     eventEmitter.addListener(eventName, callback)
 }
@@ -60,6 +64,7 @@ const BluedotPointSDK = {
     setNotificationIdResourceId,
     startGeoTriggering,
     startTempoTracking,
+    stopGeoTriggering,
     stopTempoTracking,
     getInstallRef,
     isBlueDotPointServiceRunning

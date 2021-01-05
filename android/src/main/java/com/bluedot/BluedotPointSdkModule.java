@@ -326,6 +326,11 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
+    public void stopGeoTriggeringWithCompletion(){
+      // the stopGeoTriggeringWithCompletion method is added to keep consistency with the iOS implementation
+    }
+
+    @ReactMethod
     public void startTempoTracking(String destinationId, final Callback failedCallback){
         TempoStatusListener listener = new TempoStatusListener() {
             @Override public void tempoStarted() {

@@ -78,11 +78,28 @@ RCT_EXPORT_METHOD(startGeoTriggeringWithAppRestartNotificationTitle:(NSString *_
 
     [[BDLocationManager instance] startGeoTriggeringWithAppRestartNotificationTitle: title notificationButtonText: buttonText completion:^(NSError *error) {
       if (error) {
-          NSLog( @"Geo Tracking error [%@]", error);
+          NSLog( @"Geo Tracking start error [%@]", error);
 
           reject(nil, nil, error);
       } else {
-          resolve(@"Geo Tracking success");
+          resolve(@"Geo Tracking start success");
+      }
+    }];
+}
+
+RCT_EXPORT_METHOD(stopGeoTriggeringWithCompletion:
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSLog( @"Stop Geo Triggering");
+
+    [[BDLocationManager instance] stopGeoTriggeringWithCompletion: ^(NSError *error) {
+      if (error) {
+          NSLog( @"Geo Tracking stop error [%@]", error);
+
+          reject(nil, nil, error);
+      } else {
+          resolve(@"Geo Tracking stop success");
       }
     }];
 }
@@ -90,7 +107,6 @@ RCT_EXPORT_METHOD(startGeoTriggeringWithAppRestartNotificationTitle:(NSString *_
 RCT_EXPORT_METHOD(notifyPushUpdateWithData: (NSDictionary *) data) {
     [[ BDLocationManager instance] notifyPushUpdateWithData:data];
 }
-
 
 RCT_EXPORT_METHOD(logOut: (RCTResponseSenderBlock)logOutSuccessfulCallback
     logOutFailed: (RCTResponseSenderBlock)logOutFailedCallback)
