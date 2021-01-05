@@ -321,8 +321,8 @@ public class BluedotPointSdkModule extends ReactContextBaseJavaModule
     }
 
     @ReactMethod
-    public void startGeoTriggeringWithAppRestartNotificationTitle(String title, String buttonText, Promise promise){
-        promise.resolve();
+    public void startGeoTriggeringWithAppRestartNotificationTitle(String title, String buttonText){
+      // the startGeoTriggeringWithAppRestartNotificationTitle method is added to keep consistency with the iOS implementation
     }
 
     @ReactMethod
